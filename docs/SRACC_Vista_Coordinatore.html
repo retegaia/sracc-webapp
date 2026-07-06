@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SRACC — Vista Coordinatore</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:15px;color:#1a1a1a;background:#f7f7f5}
+:root{--gd:#1E4D2B;--gm:#4A7C59;--ga:#C8860A;
+  --eb:#E6F1FB;--ef:#0C447C;--sb:#FCEBEB;--sf:#A32D2D;--cb:#EAF3DE;--cf:#3B6D11;
+  --gl:#EEF4F0;--brd:#E0E0E0;--bg:#fff;--bgs:#f7f7f5}
+.hband{background:var(--gd);padding:14px 20px;display:flex;align-items:center;
+  gap:10px;position:sticky;top:0;z-index:100;
+  padding-top:max(14px,env(safe-area-inset-top))}
+.hband h1{color:#fff;font-size:15px;font-weight:500;flex:1}
+.badge{background:rgba(255,255,255,.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px}
+.tabs{display:flex;gap:2px;padding:12px 16px 0;background:var(--bgs);
+  border-bottom:1px solid var(--brd);position:sticky;top:52px;z-index:90;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;border:none;background:none;
+  cursor:pointer;color:#666;border-bottom:3px solid transparent;white-space:nowrap;min-height:44px}
+.tab.on{color:var(--gd);border-bottom-color:var(--gd)}
+.main{max-width:720px;margin:0 auto;padding:16px;
+  padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.card{background:var(--bg);border:1px solid var(--brd);border-radius:12px;
+  padding:16px;margin-bottom:14px}
+.ct{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:12px}
+button{font-family:inherit;font-size:14px;padding:10px 16px;border-radius:8px;
+  border:1px solid var(--brd);background:var(--bgs);color:#1a1a1a;
+  cursor:pointer;min-height:44px}
+button:active{opacity:.7}
+.btn-primary{background:var(--gd);color:#fff;border-color:var(--gd)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--bg);border:1px solid var(--brd);border-radius:10px;
+  padding:12px;text-align:center}
+.sv{font-size:24px;font-weight:500}.sl{font-size:11px;color:#666;margin-top:2px}
+.drop{border:2px dashed var(--brd);border-radius:10px;padding:24px;
+  text-align:center;cursor:pointer}
+.drop:active{border-color:var(--gm);background:var(--gl)}
+.dp{font-size:13px;color:#666;margin-top:8px}
+.fblock{border:1px solid var(--brd);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.fhdr{display:flex;align-items:center;gap:8px;padding:12px 14px;
+  background:var(--bgs);cursor:pointer;min-height:52px}
+.fn{flex:1;font-size:13px;font-weight:500}
+.rbadge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.rb-Alto{background:var(--sb);color:var(--sf)}
+.rb-Medio{background:#FAEEDA;color:#854F0B}
+.rb-Basso{background:var(--cb);color:var(--cf)}
+.rb-{background:var(--bgs);color:#666}
+.fbody{padding:12px 14px;display:none;border-top:1px solid var(--brd)}
+.fbody.open{display:block}
+.rblock{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--brd)}
+.rblock:last-child{border:none;margin:0;padding:0}
+.rname{font-size:12px;font-weight:600;color:var(--gm);margin-bottom:8px}
+.fr{display:flex;align-items:flex-start;gap:6px;padding:5px 0;
+  border-bottom:1px solid #f0f0f0;font-size:12px}
+.fr:last-child{border:none}
+.fp{font-size:10px;font-weight:600;flex-shrink:0;margin-top:2px}
+.fp-det{color:var(--gd)}.fp-rel{color:var(--gm)}.fp-mar{color:#999}
+.fnm{flex:1;line-height:1.4}
+.cpill{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.c-esp{background:var(--eb);color:var(--ef)}
+.c-sen{background:var(--sb);color:var(--sf)}
+.c-cap{background:var(--cb);color:var(--cf)}
+.note-box{font-size:11px;color:#666;background:var(--bgs);
+  border-radius:6px;padding:8px 10px;margin-top:8px;font-style:italic}
+.perv-row{display:flex;align-items:center;gap:8px;padding:8px 0;
+  border-bottom:1px solid var(--brd);font-size:13px}
+.perv-row:last-child{border:none}
+.pn{flex:1}.pc{font-size:12px;color:#666;min-width:60px;text-align:right}
+.pb{display:flex;gap:3px}
+.pdot{width:10px;height:10px;border-radius:50%}
+.seg{padding:12px;border-radius:8px;margin-bottom:8px;
+  border:1px solid var(--brd);border-left-width:4px}
+.seg-crit{border-left-color:#E24B4A;background:#FFF8F8}
+.seg-verif{border-left-color:var(--ga);background:#FFFDF5}
+.seg-info{border-left-color:#378ADD;background:#F5F9FF}
+.seg-title{font-size:13px;font-weight:500;margin-bottom:4px}
+.seg-desc{font-size:12px;color:#666;line-height:1.5}
+.empty{text-align:center;padding:32px;color:#999;font-size:14px}
+.tavola-title{font-size:14px;font-weight:600;color:var(--gd);
+  padding:12px 0 8px;border-bottom:2px solid var(--gl);margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="hband">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="11" height="4" rx="1"/>
+    <rect x="3" y="17" width="7" height="4" rx="1"/></svg>
+  <h1>Vista coordinatore</h1>
+  <span class="badge">SRACC BG</span>
+</div>
+<div class="tabs">
+  <button class="tab on" data-t="carica">Carica contributi</button>
+  <button class="tab" data-t="aggregata">Vista aggregata</button>
+  <button class="tab" data-t="pervasivita">Pervasività</button>
+  <button class="tab" data-t="segnalazioni">Segnalazioni</button>
+</div>
+
+<div class="main">
+  <div id="p-carica">
+    <div class="card">
+      <div class="ct">Carica contributi referenti (JSON)</div>
+      <div class="drop" id="dropz" onclick="document.getElementById('fi').click()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div class="dp">Tocca per selezionare file JSON</div>
+        <input type="file" id="fi" multiple accept=".json" style="display:none">
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="loadDemo()">Carica dati di esempio</button>
+        <button id="btnClr" onclick="clearAll()" disabled>Azzera</button>
+      </div>
+    </div>
+    <div id="statbox"></div>
+  </div>
+  <div id="p-aggregata" style="display:none"></div>
+  <div id="p-pervasivita" style="display:none"></div>
+  <div id="p-segnalazioni" style="display:none"></div>
+</div>
+
+<script>
+const DEMO = [{"referente": "Fois M.", "disciplina": "Naturalista", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Siccità", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Superfici forestali con carattere di vetustà", "componente": "Esposizione", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Specie di interesse sensibili (Dir. Habitat e Uccelli)", "componente": "Sensibilità", "strato": "IN", "peso": "Determinante", "free": false}, {"nome": "Formazioni forestali in declino a causa della siccità", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Superfici forestali disetanee", "componente": "Capacità adattiva", "strato": "ST", "peso": "Rilevante", "free": false}, {"nome": "Interventi di ripristino selvicolturale", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante", "free": false}, {"nome": "Monitoraggio stato fitosanitario", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Bassa", "rischio": "Alto"}, "note": "Dataset fitosanitario ARPAS aggiornato al 2022.", "status": "submitted", "timestamp": "2026-05-20T09:14:00Z"}, {"referente": "Carta E.", "disciplina": "Naturalista", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Siccità", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Aree forestali/boschive", "componente": "Esposizione", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Formazioni forestali in declino a causa della siccità", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Habitat, formazioni e associazioni forestali/boschive di interesse sensibili (Dir. Habitat)", "componente": "Sensibilità", "strato": "IN", "peso": "Rilevante", "free": false}, {"nome": "Superfici incluse in aree protette (Parchi, ZSC, ZPS)", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante", "free": false}, {"nome": "Piani forestali particolareggiati", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "note": "Copertura ZSC nel Barigadu è parziale.", "status": "submitted", "timestamp": "2026-05-21T14:30:00Z"}, {"referente": "Sanciu L.", "disciplina": "Geologo", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Alluvioni, piene e frane", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Opere interferenti con il reticolo idrografico", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Presenza di specie che favoriscono instabilità del suolo", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Formazioni indebolite dal passaggio pregresso di incendi", "componente": "Sensibilità", "strato": "ST", "peso": "Rilevante", "free": false}, {"nome": "Adeguamento del PRGC al PAI", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante", "free": false}, {"nome": "Opere di mitigazione del rischio idraulico", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "note": "Eucalipto presente in 4 comuni. Dataset PAI 2024 disponibile.", "status": "submitted", "timestamp": "2026-05-22T10:05:00Z"}, {"referente": "Onni G.", "disciplina": "Urbanista", "sistema": "Insediativo e delle Infrastrutture", "pericolo": "Alluvioni, piene e frane", "field": "Edificato e patrimonio", "fattori": [{"nome": "Aree a destinazione residenziale", "componente": "Esposizione", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Consumo di suolo", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Incidenza edifici in pessimo stato di conservazione", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Adeguamento del PRGC al PAI", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante", "free": false}, {"nome": "Opere di mitigazione del rischio idraulico", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Bassa", "rischio": "Alto"}, "note": "PRGC non adeguato al PAI in 11 dei 18 comuni.", "status": "submitted", "timestamp": "2026-05-23T08:45:00Z"}, {"referente": "Ricciardi G.", "disciplina": "Analista del rischio", "sistema": "Insediativo e delle Infrastrutture", "pericolo": "Alluvioni, piene e frane", "field": "Infrastrutture di mobilità", "fattori": [{"nome": "Ponti e viadotti", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Attraversamenti stradali dei rii", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "Piano di Protezione Civile", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante", "free": false}, {"nome": "Sistemi di allerta in tempo reale", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "note": "", "status": "submitted", "timestamp": "2026-05-23T11:20:00Z"}, {"referente": "Fois M.", "disciplina": "Naturalista", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Incendi boschivi e di interfaccia", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Superfici di vegetazioni particolarmente infiammabili", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante", "free": false}, {"nome": "CNVVF e Corpo Volontari Antincendi Boschivi", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante", "free": false}, {"nome": "Densità della viabilità forestale", "componente": "Capacità adattiva", "strato": "ST", "peso": "Rilevante", "free": false}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "note": "", "status": "submitted", "timestamp": "2026-05-24T09:00:00Z"}];
+let contributi = [];
+
+const PW = {Determinante:3,Rilevante:2,Marginale:1};
+const CK = {'Esposizione':'esp','Sensibilità':'sen','Capacità adattiva':'cap'};
+
+function maxRischio(conts){
+  const r = conts.map(c=>c.vulnerabilita?.rischio).filter(Boolean);
+  return r.includes('Alto')?'Alto':r.includes('Medio')?'Medio':r.includes('Basso')?'Basso':'';
+}
+
+function loadDemo(){contributi=[...DEMO];renderAll();}
+function clearAll(){contributi=[];renderAll();}
+
+document.getElementById('fi').addEventListener('change',e=>{
+  [...e.target.files].forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{try{const d=JSON.parse(ev.target.result);contributi.push(d);renderAll();}catch(e){alert('File non valido: '+f.name);}};
+    r.readAsText(f);
+  });
+});
+
+function renderAll(){
+  document.getElementById('btnClr').disabled=contributi.length===0;
+  renderStats();renderAggregata();renderPervasivita();renderSegnalazioni();
+}
+
+function renderStats(){
+  const el=document.getElementById('statbox');
+  if(!contributi.length){el.innerHTML='';return;}
+  const refs=[...new Set(contributi.map(c=>c.referente))];
+  const combos=[...new Set(contributi.map(c=>c.sistema+'|'+c.pericolo+'|'+c.field))];
+  el.innerHTML=`<div class="stat-grid">
+    <div class="stat"><div class="sv">${contributi.length}</div><div class="sl">contributi</div></div>
+    <div class="stat"><div class="sv">${refs.length}</div><div class="sl">referenti</div></div>
+    <div class="stat"><div class="sv">${combos.length}</div><div class="sl">combinazioni</div></div>
+    <div class="stat"><div class="sv">${contributi.filter(c=>c.note).length}</div><div class="sl">con note</div></div>
+  </div>`;
+}
+
+function renderAggregata(){
+  const el=document.getElementById('p-aggregata');
+  if(!contributi.length){el.innerHTML='<div class="empty">Carica prima i contributi</div>';return;}
+  const tavole={};
+  contributi.forEach(c=>{
+    const k=c.sistema+'||'+c.pericolo;
+    if(!tavole[k])tavole[k]={sistema:c.sistema,pericolo:c.pericolo,fields:{}};
+    if(!tavole[k].fields[c.field])tavole[k].fields[c.field]=[];
+    tavole[k].fields[c.field].push(c);
+  });
+  const icons={'Siccità':'☀','Incendi boschivi e di interfaccia':'🔥','Alluvioni, piene e frane':'🌊','Ondate di calore e surriscaldamento':'🌡'};
+  let html='';
+  Object.values(tavole).forEach(t=>{
+    const icon=icons[t.pericolo]||'·';
+    html+=`<div class="tavola-title">${icon} ${t.sistema} × ${t.pericolo}</div>`;
+    Object.entries(t.fields).forEach(([field,conts])=>{
+      const mr=maxRischio(conts);
+      const fid='fb-'+Math.random().toString(36).substr(2,6);
+      html+=`<div class="fblock">
+        <div class="fhdr" onclick="toggleFB('${fid}')">
+          <span class="fn">${field}</span>
+          <span class="rbadge rb-${mr}">${mr||'—'}</span>
+          <span style="color:#999;margin-left:6px">${conts.length} contrib.</span>
+          <span style="color:#999;margin-left:6px;font-size:18px">›</span>
+        </div>
+        <div class="fbody" id="${fid}">
+          ${conts.map((c,i)=>`
+            <div class="rblock">
+              <div class="rname">👤 ${c.referente} — ${c.disciplina}
+                ${c.vulnerabilita?`<span class="rbadge rb-${c.vulnerabilita.rischio}" style="margin-left:6px">${c.vulnerabilita.rischio}</span>`:''}
+              </div>
+              ${c.fattori.map(f=>`<div class="fr">
+                <span class="cpill c-${CK[f.componente]||'esp'}">${f.componente}</span>
+                <span class="fnm">${f.nome}</span>
+                ${f.peso?`<span class="fp fp-${f.peso==='Determinante'?'det':f.peso==='Rilevante'?'rel':'mar'}">${f.peso}</span>`:''}
+              </div>`).join('')}
+              ${c.note?`<div class="note-box">📝 ${c.note}</div>`:''}
+            </div>`).join('<hr style="border:none;border-top:1px solid #f0f0f0;margin:8px 0">')}
+        </div>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
+}
+
+function toggleFB(id){
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('open');
+}
+
+function renderPervasivita(){
+  const el=document.getElementById('p-pervasivita');
+  if(!contributi.length){el.innerHTML='<div class="empty">Carica prima i contributi</div>';return;}
+  const freq={};
+  contributi.forEach(c=>c.fattori.forEach(f=>{
+    if(!freq[f.nome])freq[f.nome]={count:0,fields:new Set(),refs:new Set(),pesi:[]};
+    freq[f.nome].count++;
+    freq[f.nome].fields.add(c.field);
+    freq[f.nome].refs.add(c.referente);
+    if(f.peso)freq[f.nome].pesi.push(PW[f.peso]||0);
+  }));
+  const sorted=Object.entries(freq).sort((a,b)=>b[1].count-a[1].count);
+  const alta=sorted.filter(([,d])=>d.fields.size>=2||d.count>=3);
+  const media=sorted.filter(([,d])=>d.count===2&&d.fields.size<2);
+  const singola=sorted.filter(([,d])=>d.count===1);
+  const grp=(items,label,color)=>{
+    if(!items.length)return '';
+    const avg=d=>d.pesi.length?(d.pesi.reduce((a,b)=>a+b,0)/d.pesi.length):0;
+    const pesoLabel=v=>v>=2.5?'Determinante':v>=1.5?'Rilevante':'Marginale';
+    return `<div class="card"><div class="ct" style="color:${color}">${label} (${items.length})</div>
+      ${items.map(([nome,d])=>`<div class="perv-row">
+        <span class="pn">${nome}</span>
+        <div class="pb">${Array.from(d.fields).map(()=>`<span class="pdot" style="background:var(--gm)"></span>`).join('')}</div>
+        <span class="pc">${d.fields.size}f · ${d.count}cit</span>
+        <span style="font-size:11px;color:#666;min-width:80px;text-align:right">${pesoLabel(avg(d))}</span>
+      </div>`).join('')}
+    </div>`;
+  };
+  el.innerHTML=
+    grp(alta,'Pervasività alta','#A32D2D')+
+    grp(media,'Pervasività media','#854F0B')+
+    (singola.length?`<div class="card"><div class="ct">Singola occorrenza (${singola.length})</div>
+      ${singola.map(([nome])=>`<div class="perv-row"><span class="pn">${nome}</span></div>`).join('')}
+    </div>`:'');
+}
+
+function renderSegnalazioni(){
+  const el=document.getElementById('p-segnalazioni');
+  if(!contributi.length){el.innerHTML='<div class="empty">Carica prima i contributi</div>';return;}
+  const segs=[];
+  const fieldMap={};
+  contributi.forEach(c=>{
+    const k=c.sistema+'||'+c.pericolo+'||'+c.field;
+    if(!fieldMap[k])fieldMap[k]=[];
+    fieldMap[k].push(c);
+  });
+  Object.entries(fieldMap).forEach(([k,conts])=>{
+    if(conts.length<2)return;
+    const pesiMap={};
+    conts.forEach(c=>c.fattori.forEach(f=>{
+      if(!f.peso)return;
+      if(!pesiMap[f.nome])pesiMap[f.nome]=[];
+      pesiMap[f.nome].push({ref:c.referente,peso:f.peso});
+    }));
+    Object.entries(pesiMap).forEach(([nome,pp])=>{
+      if(pp.length<2)return;
+      const vals=[...new Set(pp.map(p=>p.peso))];
+      if(vals.length>1){
+        segs.push({
+          tipo:'crit',
+          titolo:`Peso divergente — ${nome}`,
+          desc:pp.map(p=>`${p.ref}: ${p.peso}`).join(' · ')+`. Field: ${k.split('||')[2]}`
+        });
+      }
+    });
+  });
+  const withNotes=contributi.filter(c=>c.note);
+  if(withNotes.length)segs.push({
+    tipo:'info',
+    titolo:`${withNotes.length} contributi con note narrative`,
+    desc:withNotes.map(c=>`${c.referente} (${c.field}): "${c.note.substring(0,60)}${c.note.length>60?'…':''}"`).join(' · ')
+  });
+  if(!segs.length){el.innerHTML='<div class="card"><div class="empty">Nessuna segnalazione rilevata</div></div>';return;}
+  const byT={crit:segs.filter(s=>s.tipo==='crit'),info:segs.filter(s=>s.tipo==='info')};
+  const grp=(items,label)=>items.length?`<div class="card"><div class="ct">${label} (${items.length})</div>
+    ${items.map(s=>`<div class="seg seg-${s.tipo}">
+      <div class="seg-title">${s.titolo}</div>
+      <div class="seg-desc">${s.desc}</div>
+    </div>`).join('')}
+  </div>`:'';
+  el.innerHTML=grp(byT.crit,'Segnalazioni critiche')+grp(byT.info,'Informative');
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    ['carica','aggregata','pervasivita','segnalazioni'].forEach(id=>{
+      document.getElementById('p-'+id).style.display=id===t.dataset.t?'':'none';
+    });
+  });
+});
+</script>
+</body>
+</html>

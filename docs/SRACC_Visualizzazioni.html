@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SRACC — Visualizzazioni</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:15px;color:#1a1a1a;background:#f7f7f5}
+:root{--gd:#1E4D2B;--gm:#4A7C59;--gt:#2D7D7F;--ga:#C8860A;
+  --eb:#E6F1FB;--ef:#0C447C;--sb:#FCEBEB;--sf:#A32D2D;--cb:#EAF3DE;--cf:#3B6D11;
+  --gl:#EEF4F0;--brd:#E0E0E0;--bg:#fff;--bgs:#f7f7f5}
+.hband{background:var(--gd);padding:14px 20px;display:flex;align-items:center;
+  gap:10px;position:sticky;top:0;z-index:100;
+  padding-top:max(14px,env(safe-area-inset-top))}
+.hband h1{color:#fff;font-size:15px;font-weight:500;flex:1}
+.badge{background:rgba(255,255,255,.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px}
+.tabs{display:flex;gap:2px;padding:12px 16px 0;background:var(--bgs);
+  border-bottom:1px solid var(--brd);position:sticky;top:52px;z-index:90;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;border:none;background:none;
+  cursor:pointer;color:#666;border-bottom:3px solid transparent;white-space:nowrap;min-height:44px}
+.tab.on{color:var(--gd);border-bottom-color:var(--gd)}
+.main{max-width:720px;margin:0 auto;padding:16px;
+  padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.card{background:var(--bg);border:1px solid var(--brd);border-radius:12px;
+  padding:16px;margin-bottom:14px}
+.ct{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:#666;margin-bottom:12px}
+select{font-family:inherit;font-size:14px;width:100%;padding:10px 36px 10px 12px;
+  border:1px solid var(--brd);border-radius:8px;background:var(--bg);
+  color:#1a1a1a;-webkit-appearance:none;appearance:none;min-height:44px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23999'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;margin-bottom:10px}
+button{font-family:inherit;font-size:14px;padding:10px 16px;border-radius:8px;
+  border:1px solid var(--brd);background:var(--bgs);color:#1a1a1a;
+  cursor:pointer;min-height:44px}
+button:active{opacity:.7}
+.tag{display:inline-flex;align-items:center;font-size:11px;font-weight:500;
+  padding:3px 9px;border-radius:20px}
+.t-esp{background:var(--eb);color:var(--ef)}
+.t-sen{background:var(--sb);color:var(--sf)}
+.t-cap{background:var(--cb);color:var(--cf)}
+
+/* BOW-TIE */
+.bt-layout{display:flex;align-items:stretch;gap:0;min-height:280px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch}
+.bt-col{display:flex;flex-direction:column;flex-shrink:0}
+.bt-arr{display:flex;align-items:center;padding:0 6px;color:#ccc;font-size:18px;
+  padding-top:24px;flex-shrink:0}
+.bt-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:#999;padding-bottom:6px;text-align:center}
+.bt-node{border-radius:10px;padding:10px 12px;flex:1;border:1px solid var(--brd)}
+.bt-per{background:#FAEEDA;border-color:#EF9F27;min-width:120px}
+.bt-esp{background:var(--eb);border-color:#378ADD;min-width:130px}
+.bt-sen{background:var(--sb);border-color:#E24B4A;flex:1;margin-bottom:6px}
+.bt-cap{background:var(--cb);border-color:#639922;flex:1}
+.bt-ris{border-color:#E24B4A;border-width:2px;min-width:110px}
+.bt-vul{flex:1;display:flex;flex-direction:column;min-width:170px}
+.bt-title{font-size:12px;font-weight:500;margin-bottom:6px}
+.bt-sub{font-size:10px;color:#999;margin-bottom:8px}
+.bt-tags{display:block;font-size:10px;padding:2px 6px;border-radius:3px;
+  margin-bottom:3px;line-height:1.3}
+.bt-tags.per{background:rgba(186,117,23,.12);color:#412402}
+.bt-tags.esp{background:rgba(55,138,221,.12);color:var(--ef)}
+.bt-tags.sen{background:rgba(226,75,74,.1);color:var(--sf)}
+.bt-tags.cap{background:rgba(99,153,34,.1);color:var(--cf)}
+.bt-tags.imp{color:var(--sf)}
+.vh{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.vh.s{color:var(--sf)}.vh.c{color:var(--cf)}
+.fr{display:flex;align-items:flex-start;gap:4px;padding:3px 0;
+  border-bottom:1px solid rgba(0,0,0,.05);font-size:11px}
+.fr:last-child{border:none}
+.fn{flex:1;line-height:1.3}
+.fw{font-size:9px;font-weight:700;flex-shrink:0;min-width:24px;text-align:right;padding-top:1px}
+.fw-det{color:var(--gd)}.fw-rel{color:var(--gm)}.fw-mar{color:#999}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ds{background:#E24B4A}.dc{background:#639922}
+.r-big{font-size:20px;font-weight:500;text-align:center;margin:6px 0}
+.r-Alto{color:var(--sf)}.r-Medio{color:#854F0B}.r-Basso{color:var(--cf)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#999;margin-top:8px}
+.li{display:flex;align-items:center;gap:4px}
+.ld{width:8px;height:8px;border-radius:50%}
+
+/* HEATMAP */
+.hm-table{width:100%;border-collapse:collapse}
+.hm-table th,.hm-table td{border:1px solid var(--brd);padding:8px 6px;
+  font-size:12px;vertical-align:top}
+.hm-table th{background:var(--gd);color:#fff;text-align:center;font-weight:500}
+.hm-table td.row-hdr{font-size:11px;font-weight:600;background:var(--bgs)}
+.hm-cell{cursor:pointer;min-height:60px;transition:filter .15s}
+.hm-cell:active{filter:brightness(.9)}
+.c-Alto{background:#F5DDD6}
+.c-Medio{background:#FAF0D7}
+.c-Basso{background:#DFF0D4}
+.c-none{background:var(--bgs)}
+.rl-Alto{font-size:11px;font-weight:500;color:#993C1D}
+.rl-Medio{font-size:11px;font-weight:500;color:#854F0B}
+.rl-Basso{font-size:11px;font-weight:500;color:#3B6D11}
+.rl-{font-size:10px;color:#999}
+.fchip{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;
+  margin:1px;background:rgba(0,0,0,.07);color:#666}
+.fchip.a{background:rgba(226,75,74,.15);color:#791F1F}
+.fchip.m{background:rgba(186,117,23,.15);color:#633806}
+.fchip.b{background:rgba(99,153,34,.15);color:#3B6D11}
+.hm-detail{background:var(--bg);border:1px solid var(--brd);border-radius:10px;
+  padding:14px;margin-top:12px;display:none}
+.hm-detail.open{display:block}
+.det-title{font-size:14px;font-weight:500;margin-bottom:12px}
+.frow{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border:1px solid var(--brd);border-radius:8px;margin-bottom:6px}
+.frn{flex:1;font-size:12px}
+.rp{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.rp-Alto{background:var(--sb);color:var(--sf)}
+.rp-Medio{background:#FAEEDA;color:#854F0B}
+.rp-Basso{background:var(--cb);color:var(--cf)}
+.legend-bar{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#999;margin-bottom:12px}
+
+/* GRAFO semplificato */
+#graphsvg{width:100%;border:1px solid var(--brd);border-radius:10px;
+  background:var(--bgs);display:block;touch-action:none}
+.g-tooltip{position:fixed;background:var(--bg);border:1px solid var(--brd);
+  border-radius:8px;padding:10px 12px;font-size:12px;pointer-events:none;
+  display:none;z-index:999;max-width:200px;line-height:1.5;
+  box-shadow:0 2px 12px rgba(0,0,0,.1)}
+</style>
+</head>
+<body>
+<div class="hband">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+  </svg>
+  <h1>Visualizzazioni catene d'impatto</h1>
+  <span class="badge">SRACC BG</span>
+</div>
+<div class="tabs">
+  <button class="tab on" data-t="bowtie">Bow-tie</button>
+  <button class="tab" data-t="heatmap">Heatmap</button>
+  <button class="tab" data-t="grafo">Grafo pervasività</button>
+</div>
+
+<div class="main">
+  <div id="p-bowtie">
+    <div class="card">
+      <div class="ct">Seleziona un contributo</div>
+      <select id="bt-sel" onchange="renderBT(this.value)">
+        <option value="">— seleziona —</option>
+      </select>
+    </div>
+    <div id="bt-content"></div>
+    <div class="leg">
+      <div class="li"><span class="ld" style="background:#E24B4A"></span>Sensibilità — amplifica</div>
+      <div class="li"><span class="ld" style="background:#639922"></span>Cap. adattiva — riduce</div>
+      <div class="li">Det·3 &nbsp; Rel·2 &nbsp; Mar·1</div>
+    </div>
+  </div>
+
+  <div id="p-heatmap" style="display:none">
+    <div class="card">
+      <div class="ct">Livello di rischio per sistema × pericolo</div>
+      <div class="legend-bar">
+        <span>🔴 Alto</span><span>🟡 Medio</span><span>🟢 Basso</span><span>⬜ Non valutato</span>
+        <span style="margin-left:auto;font-style:italic">Tocca una cella per il dettaglio</span>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="hm-table" id="hm-table"></table>
+      </div>
+      <div class="hm-detail" id="hm-detail">
+        <div class="det-title" id="hm-det-title"></div>
+        <div id="hm-det-content"></div>
+        <button onclick="document.getElementById('hm-detail').classList.remove('open')" style="margin-top:10px;font-size:12px">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="p-grafo" style="display:none">
+    <div class="card">
+      <div class="ct">Fattori × Impact field — pervasività</div>
+      <div style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap" id="g-filters">
+        <button class="g-fbtn on" data-f="all" onclick="gFilter('all',this)">Tutti</button>
+        <button class="g-fbtn" data-f="INS" onclick="gFilter('INS',this)">🏘 Insediativo</button>
+        <button class="g-fbtn" data-f="AGR" onclick="gFilter('AGR',this)">🌾 Agricoltura</button>
+        <button class="g-fbtn" data-f="NAT" onclick="gFilter('NAT',this)">🌿 Naturale</button>
+      </div>
+      <svg id="graphsvg" height="400" viewBox="0 0 680 400"></svg>
+      <div class="g-tooltip" id="g-tt"></div>
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:#999">
+        <div class="li"><span class="ld" style="background:#4A7C59"></span>Cap. adattiva</div>
+        <div class="li"><span class="ld" style="background:#993C1D"></span>Sensibilità</div>
+        <div class="li"><span class="ld" style="background:#534AB7"></span>Insediativo</div>
+        <div class="li"><span class="ld" style="background:#BA7517"></span>Agricoltura</div>
+        <div class="li"><span class="ld" style="background:#0F6E56"></span>Naturale</div>
+        <div style="margin-left:auto">○ = pervasività</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#999;text-align:center">Tocca un nodo per il dettaglio. Il grafo usa dati dalla libreria v2.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const DEMO = [{"referente": "Fois M.", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Siccità", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Superfici forestali con carattere di vetustà", "componente": "Esposizione", "strato": "ST", "peso": "Determinante"}, {"nome": "Specie di interesse sensibili", "componente": "Sensibilità", "strato": "IN", "peso": "Determinante"}, {"nome": "Formazioni forestali in declino per siccità", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Alberi monumentali di specie autoctone sensibili", "componente": "Sensibilità", "strato": "IN", "peso": "Rilevante"}, {"nome": "Superfici forestali disetanee", "componente": "Capacità adattiva", "strato": "ST", "peso": "Rilevante"}, {"nome": "Interventi di ripristino selvicolturale", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante"}, {"nome": "Monitoraggio stato fitosanitario", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale"}], "vulnerabilita": {"sen": "Alta", "cap": "Bassa", "rischio": "Alto"}, "impatti": ["Perdita biodiversità locale", "Riduzione servizi ecosistemici", "Perdita specie di interesse", "Diffusione specie invasive xerofile"]}, {"referente": "Sanciu L.", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Alluvioni, piene e frane", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Opere interferenti con il reticolo idrografico", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Presenza di specie che favoriscono instabilità del suolo", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Formazioni indebolite da incendi pregressi", "componente": "Sensibilità", "strato": "ST", "peso": "Rilevante"}, {"nome": "Adeguamento del PRGC al PAI", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante"}, {"nome": "Opere di mitigazione del rischio idraulico", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale"}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "impatti": ["Erosione e instabilità dei versanti boscati", "Perdita habitat igrofili", "Danneggiamento ecosistemi ripariali"]}, {"referente": "Onni G.", "sistema": "Insediativo e delle Infrastrutture", "pericolo": "Alluvioni, piene e frane", "field": "Edificato e patrimonio", "fattori": [{"nome": "Aree a destinazione residenziale", "componente": "Esposizione", "strato": "ST", "peso": "Determinante"}, {"nome": "Consumo di suolo", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Incidenza edifici in pessimo stato di conservazione", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Adeguamento del PRGC al PAI", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante"}, {"nome": "Opere di mitigazione del rischio idraulico", "componente": "Capacità adattiva", "strato": "IN", "peso": "Marginale"}], "vulnerabilita": {"sen": "Alta", "cap": "Bassa", "rischio": "Alto"}, "impatti": ["Danni al patrimonio edilizio", "Interruzione accesso a servizi essenziali", "Perdita di valore del patrimonio storico"]}, {"referente": "Ricciardi G.", "sistema": "Insediativo e delle Infrastrutture", "pericolo": "Alluvioni, piene e frane", "field": "Infrastrutture di mobilità", "fattori": [{"nome": "Ponti e viadotti", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Attraversamenti stradali dei rii", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Piano di Protezione Civile", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante"}, {"nome": "Sistemi di allerta in tempo reale", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante"}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "impatti": ["Isolamento di nuclei abitati", "Interruzione viabilità di emergenza", "Danni infrastrutturali permanenti"]}, {"referente": "Fois M.", "sistema": "Sistema degli Ambienti Naturali", "pericolo": "Incendi boschivi e di interfaccia", "field": "Ecosistemi forestali e vegetazione", "fattori": [{"nome": "Superfici di vegetazioni particolarmente infiammabili", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Alberi monumentali non iscritti all'AMI", "componente": "Sensibilità", "strato": "ST", "peso": "Rilevante"}, {"nome": "CNVVF e Corpo Volontari Antincendi Boschivi", "componente": "Capacità adattiva", "strato": "IN", "peso": "Determinante"}, {"nome": "Densità della viabilità forestale", "componente": "Capacità adattiva", "strato": "ST", "peso": "Rilevante"}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "impatti": ["Perdita irreversibile di formazioni vetuste", "Mortalità di specie endemiche", "Compromissione di habitat prioritari Natura 2000"]}, {"referente": "Onni G.", "sistema": "Insediativo e delle Infrastrutture", "pericolo": "Ondate di calore e surriscaldamento", "field": "Popolazione vulnerabile", "fattori": [{"nome": "Popolazione residente (anziani, giovani)", "componente": "Esposizione", "strato": "ST", "peso": "Determinante"}, {"nome": "Popolazione anziana (>65 anni)", "componente": "Sensibilità", "strato": "ST", "peso": "Determinante"}, {"nome": "Reddito medio imponibile", "componente": "Sensibilità", "strato": "ST", "peso": "Rilevante"}, {"nome": "Piano di Protezione Civile", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante"}, {"nome": "Sistemi di allerta in tempo reale", "componente": "Capacità adattiva", "strato": "IN", "peso": "Rilevante"}, {"nome": "Prossimità a strutture condizionate", "componente": "Capacità adattiva", "strato": "ST", "peso": "Marginale"}], "vulnerabilita": {"sen": "Alta", "cap": "Media", "rischio": "Alto"}, "impatti": ["Incremento mortalità estiva nella fascia anziana", "Riduzione della vita attiva all'aperto", "Aumento della dipendenza dai servizi socio-sanitari"]}];
+const CK = {'Esposizione':'esp','Sensibilità':'sen','Capacità adattiva':'cap'};
+const PW = {Determinante:3,Rilevante:2,Marginale:1};
+
+// ── Populate BT selector ──────────────────────────────────────────────────
+const sel=document.getElementById('bt-sel');
+DEMO.forEach((d,i)=>{
+  const o=document.createElement('option');
+  o.value=i;
+  o.textContent=`${d.referente} — ${d.sistema.split(' ')[0]} × ${d.pericolo.split(',')[0]} × ${d.field}`;
+  sel.appendChild(o);
+});
+
+function renderBT(idx){
+  const el=document.getElementById('bt-content');
+  if(!idx&&idx!==0){el.innerHTML='';return;}
+  const d=DEMO[parseInt(idx)];
+  if(!d){el.innerHTML='';return;}
+  const esp=d.fattori.filter(f=>f.componente==='Esposizione');
+  const sen=d.fattori.filter(f=>f.componente==='Sensibilità');
+  const cap=d.fattori.filter(f=>f.componente==='Capacità adattiva');
+  const r=d.vulnerabilita?.rischio||'—';
+  const fwClass=p=>p==='Determinante'?'fw-det':p==='Rilevante'?'fw-rel':'fw-mar';
+  const fwNum=p=>p==='Determinante'?3:p==='Rilevante'?2:1;
+  el.innerHTML=`
+    <div class="card" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <div style="font-size:12px;color:#666;margin-bottom:12px">
+        ${d.sistema} × ${d.pericolo} — ${d.field} · <em>${d.referente}</em>
+      </div>
+      <div class="bt-layout">
+        <div class="bt-col" style="min-width:110px">
+          <div class="bt-lbl">Pericolo</div>
+          <div class="bt-node bt-per" style="flex:1">
+            <div class="bt-title">${d.pericolo}</div>
+          </div>
+        </div>
+        <div class="bt-arr">→</div>
+        <div class="bt-col" style="min-width:130px">
+          <div class="bt-lbl">Esposizione</div>
+          <div class="bt-node bt-esp" style="flex:1">
+            ${esp.map(f=>`<span class="bt-tags esp">${f.nome}</span>`).join('')}
+            ${d.field?`<div style="font-size:10px;color:#0C447C;margin-top:6px;font-style:italic">${d.field}</div>`:''}
+          </div>
+        </div>
+        <div class="bt-arr">→</div>
+        <div class="bt-col bt-vul">
+          <div class="bt-lbl">Vulnerabilità</div>
+          <div class="bt-node bt-sen">
+            <div class="vh s">↑ Sensibilità</div>
+            ${sen.map(f=>`<div class="fr"><span class="dot ds"></span><span class="fn">${f.nome}</span><span class="fw ${fwClass(f.peso)}">${fwNum(f.peso)}</span></div>`).join('')}
+          </div>
+          <div class="bt-node bt-cap" style="margin-top:6px">
+            <div class="vh c">↓ Cap. adattiva</div>
+            ${cap.map(f=>`<div class="fr"><span class="dot dc"></span><span class="fn">${f.nome}</span><span class="fw ${fwClass(f.peso)}">${fwNum(f.peso)}</span></div>`).join('')}
+          </div>
+        </div>
+        <div class="bt-arr">→</div>
+        <div class="bt-col" style="min-width:110px">
+          <div class="bt-lbl">Rischio atteso</div>
+          <div class="bt-node bt-ris" style="flex:1">
+            <div class="r-big r-${r}">${r}</div>
+            ${(d.impatti||[]).map(i=>`<div class="bt-tags imp">→ ${i}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── HEATMAP ───────────────────────────────────────────────────────────────
+const SISTEMI=['Insediativo e delle Infrastrutture','Agricoltura e Allevamento','Sistema degli Ambienti Naturali'];
+const PERICOLI=['Ondate di calore e surriscaldamento','Siccità','Incendi boschivi e di interfaccia','Alluvioni, piene e frane'];
+const PICONS={'Ondate di calore e surriscaldamento':'🌡','Siccità':'☀','Incendi boschivi e di interfaccia':'🔥','Alluvioni, piene e frane':'🌊'};
+
+function buildHeatmap(){
+  const cellData={};
+  DEMO.forEach(c=>{
+    const k=c.sistema+'|||'+c.pericolo;
+    if(!cellData[k])cellData[k]=[];
+    cellData[k].push({field:c.field,rischio:c.vulnerabilita?.rischio||'',referente:c.referente,note:c.note});
+  });
+  const maxR=items=>{
+    const r=items.map(x=>x.rischio);
+    return r.includes('Alto')?'Alto':r.includes('Medio')?'Medio':r.includes('Basso')?'Basso':'';
+  };
+  const table=document.getElementById('hm-table');
+  let html=`<thead><tr><th style="width:130px">Sistema</th>${PERICOLI.map(p=>`<th>${PICONS[p]||''}<br><span style="font-size:10px">${p.split(',')[0]}</span></th>`).join('')}</tr></thead><tbody>`;
+  SISTEMI.forEach((sis,si)=>{
+    html+=`<tr><td class="row-hdr">${sis.split(' ')[0]}</td>`;
+    PERICOLI.forEach(per=>{
+      const k=sis+'|||'+per;
+      const items=cellData[k];
+      if(!items){html+=`<td class="hm-cell c-none"><span class="rl-">—</span></td>`;return;}
+      const mr=maxR(items);
+      html+=`<td class="hm-cell c-${mr}" onclick="showDetail('${k.replace(/'/g,"\'")}')">
+        <span class="rl-${mr}">${mr||'—'}</span><br>
+        <div style="margin-top:4px">${[...new Set(items.map(x=>x.field))].map(f=>`<span class="fchip ${mr==='Alto'?'a':mr==='Medio'?'m':'b'}">${f.split(' ')[0]}…</span>`).join('')}</div>
+      </td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody>';
+  table.innerHTML=html;
+}
+
+function showDetail(k){
+  const items=DEMO.filter(c=>c.sistema+'|||'+c.pericolo===k);
+  const det=document.getElementById('hm-detail');
+  const parts=k.split('|||');
+  document.getElementById('hm-det-title').textContent=parts[0].split(' ')[0]+' × '+parts[1];
+  const byField={};
+  items.forEach(c=>{if(!byField[c.field])byField[c.field]=[];byField[c.field].push(c);});
+  document.getElementById('hm-det-content').innerHTML=Object.entries(byField).map(([field,conts])=>`
+    <div style="margin-bottom:10px">
+      ${conts.map(c=>`<div class="frow">
+        <span class="frn">${field}</span>
+        <span style="font-size:11px;color:#666">${c.referente}</span>
+        <span class="rp rp-${c.vulnerabilita?.rischio||''}">${c.vulnerabilita?.rischio||'—'}</span>
+      </div>`).join('')}
+    </div>`).join('');
+  det.classList.add('open');
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── GRAFO ─────────────────────────────────────────────────────────────────
+const FACTOR_NODES=[
+  {id:'ppc',label:'Piano di Protezione Civile',short:'PPC',comp:'CAP',strato:'IN',count:15},
+  {id:'rs',label:'Interventi di ripristino selvicolturale',short:'Rip.selv.',comp:'CAP',strato:'IN',count:13},
+  {id:'cx',label:'Attività di conservazione ex situ',short:'Cons.ex situ',comp:'CAP',strato:'IN',count:12},
+  {id:'ra',label:'Interventi di ripristino ambientale',short:'Rip.amb.',comp:'CAP',strato:'IN',count:11},
+  {id:'ap',label:'Superfici incluse in aree protette',short:'Aree protette',comp:'CAP',strato:'IN',count:10},
+  {id:'sa',label:'Controllo specie aliene invasive',short:'Sp.aliene',comp:'CAP',strato:'IN',count:9},
+  {id:'al',label:'Sistemi di allerta in tempo reale',short:'Allerta',comp:'CAP',strato:'IN',count:8},
+  {id:'pai',label:'Adeguamento del PRGC al PAI',short:'Adag.PAI',comp:'CAP',strato:'IN',count:8},
+  {id:'bac',label:'Bacini ed invasi',short:'Bacini',comp:'CAP',strato:'ST',count:7},
+  {id:'mi',label:'Opere mitigazione rischio idraulico',short:'Mit.idraul.',comp:'CAP',strato:'IN',count:7},
+  {id:'ai',label:'Approvvigionamento idrico',short:'Appr.idrico',comp:'CAP',strato:'ST',count:6},
+  {id:'cs',label:'Consumo di suolo',short:'Cons.suolo',comp:'SEN',strato:'ST',count:5},
+];
+const FIELD_NODES=[
+  {id:'fi_ed',label:'Edificato',sistema:'INS'},
+  {id:'fi_po',label:'Popolazione',sistema:'INS'},
+  {id:'fi_sp',label:'Spazio urbano',sistema:'INS'},
+  {id:'fi_mo',label:'Mobilità',sistema:'INS'},
+  {id:'fi_re',label:'Reti/servizi',sistema:'INS'},
+  {id:'fi_co',label:'Colture',sistema:'AGR'},
+  {id:'fi_pa',label:'Pascoli',sistema:'AGR'},
+  {id:'fi_al',label:'Allevamenti',sistema:'AGR'},
+  {id:'fi_az',label:'Aziende agr.',sistema:'AGR'},
+  {id:'fi_fo',label:'Foreste',sistema:'NAT'},
+  {id:'fi_um',label:'Zone umide',sistema:'NAT'},
+  {id:'fi_ag',label:'Agro-pastorali',sistema:'NAT'},
+];
+const LINKS=[
+  ['ppc','fi_ed'],['ppc','fi_po'],['ppc','fi_mo'],['ppc','fi_co'],['ppc','fi_pa'],
+  ['ppc','fi_al'],['ppc','fi_az'],['ppc','fi_fo'],['ppc','fi_um'],['ppc','fi_ag'],
+  ['rs','fi_co'],['rs','fi_pa'],['rs','fi_az'],['rs','fi_fo'],['rs','fi_um'],['rs','fi_ag'],['rs','fi_sp'],
+  ['cx','fi_fo'],['cx','fi_um'],['cx','fi_ag'],
+  ['ra','fi_fo'],['ra','fi_um'],['ra','fi_ag'],['ra','fi_co'],
+  ['ap','fi_fo'],['ap','fi_um'],['ap','fi_ag'],
+  ['sa','fi_fo'],['sa','fi_um'],['sa','fi_ag'],
+  ['al','fi_ed'],['al','fi_po'],['al','fi_mo'],['al','fi_re'],['al','fi_fo'],
+  ['pai','fi_ed'],['pai','fi_mo'],['pai','fi_co'],['pai','fi_pa'],['pai','fi_al'],
+  ['pai','fi_az'],['pai','fi_fo'],['pai','fi_um'],['pai','fi_ag'],
+  ['bac','fi_co'],['bac','fi_pa'],['bac','fi_al'],['bac','fi_az'],['bac','fi_ag'],
+  ['mi','fi_ed'],['mi','fi_mo'],['mi','fi_co'],['mi','fi_al'],['mi','fi_az'],
+  ['mi','fi_fo'],['mi','fi_um'],['mi','fi_ag'],
+  ['ai','fi_co'],['ai','fi_pa'],['ai','fi_sp'],
+  ['cs','fi_ed'],['cs','fi_po'],['cs','fi_sp'],
+].map(([s,t])=>({source:s,target:t}));
+
+const FC={CAP:'#4A7C59',SEN:'#993C1D'};
+const SC={INS:'#534AB7',AGR:'#BA7517',NAT:'#0F6E56'};
+let activeFilter='all';
+let simulation=null;
+
+function initGraph(){
+  if(typeof d3==='undefined') {
+    document.getElementById('graphsvg').parentNode.innerHTML+=
+      '<p style="color:#999;font-size:12px;text-align:center;margin-top:8px">Grafo disponibile con connessione internet (richiede D3.js).</p>';
+    return;
+  }
+  const W=680,H=400;
+  const nodes=[
+    ...FACTOR_NODES.map(d=>({...d,type:'factor'})),
+    ...FIELD_NODES.map(d=>({...d,type:'field'})),
+  ];
+  const links=LINKS.map(l=>({...l}));
+  const cx=W/2,cy=H/2,arcR=170;
+  const sisG={INS:[],AGR:[],NAT:[]};
+  FIELD_NODES.forEach(f=>sisG[f.sistema].push(f.id));
+  const arcPos=(ids,baseDeg,spreadDeg)=>{
+    const base=baseDeg*Math.PI/180,sp=spreadDeg*Math.PI/180;
+    return ids.map((id,i)=>{
+      const t=ids.length===1?0:(i/(ids.length-1))-.5;
+      const a=base+t*sp;
+      return {id,x:cx+arcR*Math.cos(a),y:cy+arcR*Math.sin(a)};
+    });
+  };
+  const fpos=[...arcPos(sisG.INS,15,95),...arcPos(sisG.AGR,148,75),...arcPos(sisG.NAT,232,70)];
+  nodes.forEach(n=>{
+    if(n.type==='field'){const p=fpos.find(x=>x.id===n.id);if(p){n.x=p.x;n.y=p.y;}}
+    else{n.x=cx+(Math.random()-.5)*60;n.y=cy+(Math.random()-.5)*60;}
+  });
+  const rSc=d3.scaleLinear().domain([5,15]).range([8,22]);
+  const getR=n=>n.type==='factor'?rSc(n.count):10;
+  const svg=d3.select('#graphsvg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.append('rect').attr('width',W).attr('height',H).attr('fill','#f7f7f5').attr('rx',10);
+  const gL=svg.append('g');
+  const gN=svg.append('g');
+  simulation=d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(links).id(d=>d.id).distance(100).strength(.4))
+    .force('charge',d3.forceManyBody().strength(d=>d.type==='factor'?-200:-70))
+    .force('center',d3.forceCenter(cx,cy).strength(.03))
+    .force('collide',d3.forceCollide().radius(d=>getR(d)+7).strength(.85))
+    .force('xi',d3.forceX(d=>d.type==='field'?d.x:cx).strength(d=>d.type==='field'?.18:0))
+    .force('yi',d3.forceY(d=>d.type==='field'?d.y:cy).strength(d=>d.type==='field'?.18:0))
+    .alphaDecay(.025);
+  const link=gL.selectAll('line').data(links).join('line')
+    .attr('stroke',d=>{const s=nodes.find(n=>n.id===d.source);return s?FC[s.comp]||'#888':'#aaa';})
+    .attr('stroke-opacity',.3).attr('stroke-width',1.2);
+  const node=gN.selectAll('g').data(nodes).join('g').style('cursor','pointer')
+    .call(d3.drag()
+      .on('start',(e,d)=>{if(!e.active)simulation.alphaTarget(.15).restart();d.fx=d.x;d.fy=d.y;})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+      .on('end',(e,d)=>{if(!e.active)simulation.alphaTarget(0);d.fx=null;d.fy=null;}));
+  node.append('circle')
+    .attr('r',getR)
+    .attr('fill',d=>d.type==='factor'?FC[d.comp]||'#888':SC[d.sistema]||'#888')
+    .attr('fill-opacity',.9)
+    .attr('stroke','#fff').attr('stroke-width',1.5)
+    .attr('stroke-dasharray',d=>d.type==='factor'&&d.strato==='IN'?'4,3':null);
+  node.filter(d=>d.type==='factor'&&d.count>=10)
+    .append('text').attr('dy','0.35em').attr('text-anchor','middle')
+    .attr('font-size',8).attr('font-weight','500').attr('fill','#fff')
+    .text(d=>d.short).style('pointer-events','none');
+  node.filter(d=>d.type==='field')
+    .append('text').attr('dy',d=>getR(d)+11).attr('text-anchor','middle')
+    .attr('font-size',9).attr('fill','#666').text(d=>d.label)
+    .style('pointer-events','none');
+  const tt=document.getElementById('g-tt');
+  node.on('pointerover',(e,d)=>{
+    let html=`<strong>${d.label}</strong><br>`;
+    if(d.type==='factor'){
+      const nc=links.filter(l=>(l.target.id||l.target)===d.id).length;
+      html+=`${d.comp==='CAP'?'Capacità adattiva':'Sensibilità'} · ${d.strato==='IN'?'Invariante':'Specificità'}<br>Occorrenze: ${d.count} · Connessioni: ${nc}`;
+    }else{
+      const nc=links.filter(l=>(l.target.id||l.target)===d.id).length;
+      html+=`${d.sistema==='INS'?'Insediativo':d.sistema==='AGR'?'Agricoltura':'Naturale'}<br>Fattori pervasivi: ${nc}`;
+    }
+    tt.innerHTML=html;tt.style.display='block';
+    node.attr('opacity',n=>{
+      if(n===d)return 1;
+      return links.some(l=>{const s=l.source.id||l.source,t=l.target.id||l.target;return(s===d.id&&t===n.id)||(t===d.id&&s===n.id);})?1:.15;
+    });
+    link.attr('stroke-opacity',l=>{const s=l.source.id||l.source,t=l.target.id||l.target;return(s===d.id||t===d.id)?.7:.04;})
+        .attr('stroke-width',l=>{const s=l.source.id||l.source,t=l.target.id||l.target;return(s===d.id||t===d.id)?2.5:1;});
+  })
+  .on('pointermove',e=>{tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY-10)+'px';})
+  .on('pointerout',()=>{
+    tt.style.display='none';
+    node.attr('opacity',d=>activeFilter==='all'||d.type==='factor'||d.sistema===activeFilter?1:.12);
+    link.attr('stroke-opacity',.3).attr('stroke-width',1.2);
+  });
+  simulation.on('tick',()=>{
+    nodes.forEach(n=>{const r=getR(n)+2;n.x=Math.max(r,Math.min(W-r,n.x));n.y=Math.max(r,Math.min(H-r,n.y));});
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+}
+
+function gFilter(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.g-fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(!simulation)return;
+  d3.select('#graphsvg').selectAll('g g').attr('opacity',d=>{
+    if(!d)return 1;
+    return f==='all'||d.type==='factor'||d.sistema===f?1:.12;
+  });
+  d3.select('#graphsvg').selectAll('g line').attr('stroke-opacity',d=>{
+    if(!d||f==='all')return .3;
+    const tn=FIELD_NODES.find(n=>n.id===(d.target.id||d.target));
+    return tn&&tn.sistema===f?.35:.04;
+  });
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    ['bowtie','heatmap','grafo'].forEach(id=>{
+      document.getElementById('p-'+id).style.display=id===t.dataset.t?'':'none';
+    });
+    if(t.dataset.t==='grafo'&&!simulation)initGraph();
+  });
+});
+
+// Init
+buildHeatmap();
+</script>
+</body>
+</html>
