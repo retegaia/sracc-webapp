@@ -1,0 +1,113 @@
+/* Stili del Form Referente — portati da docs/SRACC_Form_Referente.html (§4.2, Tab.4) */
+.contributor-form { max-width: 680px; margin: 0 auto; padding: 16px; }
+.contributor-form :root,
+.contributor-form {
+  --gd: #1E4D2B; --gm: #4A7C59; --gt: #2D7D7F; --ga: #C8860A;
+  --eb: #E6F1FB; --ef: #0C447C; --sb: #FCEBEB; --sf: #A32D2D; --cb: #EAF3DE; --cf: #3B6D11;
+  --gl: #EEF4F0; --brd: #E0E0E0; --bg: #fff; --bgs: #f7f7f5;
+}
+.contributor-form .card {
+  background: var(--bg); border: 1px solid var(--brd); border-radius: 12px;
+  padding: 16px; margin-bottom: 14px;
+}
+.contributor-form .ct {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: #666; margin-bottom: 12px;
+}
+.contributor-form button {
+  font-family: inherit; font-size: 14px; padding: 11px 18px; border-radius: 8px;
+  border: 1px solid var(--brd); background: var(--bgs); color: #1a1a1a;
+  cursor: pointer; min-height: 44px; transition: opacity .15s;
+}
+.contributor-form button:active { opacity: .7; }
+.contributor-form .btn-primary { background: var(--gd); color: #fff; border-color: var(--gd); }
+.contributor-form .btn-outline { border-color: var(--gd); color: var(--gd); background: #fff; }
+.contributor-form .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
+.contributor-form select, .contributor-form input[type=text], .contributor-form textarea {
+  font-family: inherit; font-size: 14px; width: 100%;
+  padding: 10px 12px; border: 1px solid var(--brd); border-radius: 8px;
+  background: var(--bg); color: #1a1a1a; min-height: 44px;
+}
+.contributor-form textarea { resize: vertical; min-height: 100px; }
+.contributor-form select:disabled { opacity: .35; }
+.contributor-form .sel-group { margin-bottom: 12px; }
+.contributor-form label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
+.contributor-form .step-row { display: flex; gap: 4px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.contributor-form .sd {
+  width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  border: 1.5px solid var(--brd); color: #666; background: #fff;
+}
+.contributor-form .sd.active { background: var(--gd); color: #fff; border-color: var(--gd); }
+.contributor-form .sd.done { background: var(--gm); color: #fff; border-color: var(--gm); }
+.contributor-form .sl { font-size: 12px; color: #666; }
+.contributor-form .ss { color: #ccc; }
+.contributor-form .comp-hdr { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 8px; }
+.contributor-form .comp-hdr.esp { color: var(--ef); }
+.contributor-form .comp-hdr.sen { color: var(--sf); }
+.contributor-form .comp-hdr.cap { color: var(--cf); }
+.contributor-form .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.contributor-form .chip {
+  display: inline-flex; align-items: center; font-size: 12px; padding: 8px 12px;
+  border-radius: 20px; border: 1px solid var(--brd); background: var(--bgs);
+  cursor: pointer; min-height: 38px; transition: all .15s; user-select: none; line-height: 1.3;
+}
+.contributor-form .chip:active { transform: scale(.97); }
+.contributor-form .chip.sel-esp { background: var(--eb); border-color: #378ADD; color: var(--ef); }
+.contributor-form .chip.sel-sen { background: var(--sb); border-color: #E24B4A; color: var(--sf); }
+.contributor-form .chip.sel-cap { background: var(--cb); border-color: #639922; color: var(--cf); }
+.contributor-form .chip.in::after {
+  content: 'IN'; font-size: 9px; font-weight: 700; background: rgba(0,0,0,.09);
+  padding: 1px 4px; border-radius: 3px; margin-left: 4px; flex-shrink: 0;
+}
+.contributor-form .free-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; }
+.contributor-form .free-row input { flex: 1; }
+.contributor-form .free-row button { flex-shrink: 0; white-space: nowrap; }
+.contributor-form .comp-sel { background: var(--gl); border: 1px solid #4A7C59; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.contributor-form .comp-sel p { font-size: 12px; color: var(--gd); margin-bottom: 8px; }
+.contributor-form .comp-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.contributor-form .comp-btns button { font-size: 12px; padding: 7px 12px; min-height: 36px; }
+.contributor-form .sel-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.contributor-form .sel-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bgs); border: 1px solid var(--brd); border-radius: 8px; }
+.contributor-form .si-pill { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+.contributor-form .pi-esp { background: var(--eb); color: var(--ef); }
+.contributor-form .pi-sen { background: var(--sb); color: var(--sf); }
+.contributor-form .pi-cap { background: var(--cb); color: var(--cf); }
+.contributor-form .si-name { flex: 1; font-size: 13px; line-height: 1.3; }
+.contributor-form .si-rm { background: none; border: none; padding: 6px; font-size: 20px; color: #999; min-height: 36px; min-width: 36px; cursor: pointer; flex-shrink: 0; }
+.contributor-form .w-block { margin-bottom: 14px; padding: 12px 0; border-bottom: 1px solid var(--brd); }
+.contributor-form .w-block:last-child { border: none; }
+.contributor-form .w-name { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+.contributor-form .w-cards { display: flex; gap: 6px; }
+.contributor-form .wc {
+  flex: 1; border: 2px solid var(--brd); border-radius: 10px; padding: 10px 6px;
+  text-align: center; cursor: pointer; min-height: 70px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; transition: all .15s;
+}
+.contributor-form .wc:active { transform: scale(.97); }
+.contributor-form .wc.sel-det { border-color: var(--gd); background: var(--gl); }
+.contributor-form .wc.sel-rel { border-color: var(--gm); background: var(--gl); }
+.contributor-form .wc.sel-mar { border-color: var(--brd); background: var(--bgs); }
+.contributor-form .wc-n { font-size: 22px; font-weight: 500; }
+.contributor-form .sel-det .wc-n { color: var(--gd); }
+.contributor-form .sel-rel .wc-n { color: var(--gm); }
+.contributor-form .sel-mar .wc-n { color: #999; }
+.contributor-form .wc-l { font-size: 11px; font-weight: 500; }
+.contributor-form .wc-d { font-size: 10px; color: #999; line-height: 1.2; }
+.contributor-form .vuln-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.contributor-form .vs { flex: 1; background: var(--bgs); border-radius: 8px; padding: 10px; text-align: center; }
+.contributor-form .vs-l { font-size: 11px; color: #666; margin-bottom: 3px; }
+.contributor-form .vs-v { font-size: 17px; font-weight: 500; }
+.contributor-form .r-badge { text-align: center; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+.contributor-form .r-Alto { background: var(--sb); color: var(--sf); }
+.contributor-form .r-Medio { background: #FAEEDA; color: #854F0B; }
+.contributor-form .r-Basso { background: var(--cb); color: var(--cf); }
+.contributor-form .out {
+  background: var(--bgs); border-radius: 8px; padding: 12px; font-size: 12px;
+  font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-all;
+  max-height: 300px; overflow-y: auto;
+}
+.contributor-form .note-info {
+  background: var(--gl); border-left: 3px solid var(--gd); padding: 10px 12px;
+  border-radius: 0 8px 8px 0; font-size: 12px; color: var(--gd); margin-bottom: 10px;
+}

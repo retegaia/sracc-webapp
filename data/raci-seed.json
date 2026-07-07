@@ -8,5 +8,13 @@
       "role": "coordinator"
     }
   ],
-  "raci": []
+  "raci": [
+    {
+      "email": "andrea.vallebona@retegaia.it",
+      "sistema": "Insediativo e delle Infrastrutture",
+      "pericolo": "Ondate di calore e surriscaldamento",
+      "field": "Edificato e patrimonio",
+      "role": "R"
+    }
+  ]
 }
