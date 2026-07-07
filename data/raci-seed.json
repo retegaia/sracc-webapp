@@ -1,0 +1,12 @@
+{
+  "territory": { "name": "Barigadu Guilcer", "region": "Sardegna" },
+  "users": [
+    {
+      "name": "Andrea Vallebona",
+      "email": "andrea.vallebona@retegaia.it",
+      "discipline": "Coordinamento",
+      "role": "coordinator"
+    }
+  ],
+  "raci": []
+}

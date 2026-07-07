@@ -8,5 +8,13 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+# Fallback SPA: tutte le route non-API servono index.html, così React Router
+# gestisce /login, /form, /coordinator ecc. lato client (§4.1). Deve restare
+# l'ultima regola.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [functions]
   node_bundler = "esbuild"
