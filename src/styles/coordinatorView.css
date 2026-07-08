@@ -1,0 +1,73 @@
+/* Stili della Vista Coordinatore — portati da docs/SRACC_Vista_Coordinatore.html (§4.2, Tab.4) */
+.coordinator-view :root,
+.coordinator-view {
+  --gd: #1E4D2B; --gm: #4A7C59; --ga: #C8860A;
+  --eb: #E6F1FB; --ef: #0C447C; --sb: #FCEBEB; --sf: #A32D2D; --cb: #EAF3DE; --cf: #3B6D11;
+  --gl: #EEF4F0; --brd: #E0E0E0; --bg: #fff; --bgs: #f7f7f5;
+}
+.coordinator-view .tabs {
+  display: flex; gap: 2px; padding: 12px 16px 0; background: var(--bgs);
+  border-bottom: 1px solid var(--brd); overflow-x: auto;
+}
+.coordinator-view .tab {
+  font-family: inherit; padding: 9px 16px; font-size: 13px; font-weight: 500; border: none;
+  background: none; cursor: pointer; color: #666; border-bottom: 3px solid transparent;
+  white-space: nowrap; min-height: 44px;
+}
+.coordinator-view .tab.on { color: var(--gd); border-bottom-color: var(--gd); }
+.coordinator-view .main { max-width: 720px; margin: 0 auto; padding: 16px; }
+.coordinator-view .card {
+  background: var(--bg); border: 1px solid var(--brd); border-radius: 12px;
+  padding: 16px; margin-bottom: 14px;
+}
+.coordinator-view .ct {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: #666; margin-bottom: 12px;
+}
+.coordinator-view .fblock { border: 1px solid var(--brd); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+.coordinator-view .fhdr {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px;
+  background: var(--bgs); cursor: pointer; min-height: 52px;
+}
+.coordinator-view .fn { flex: 1; font-size: 13px; font-weight: 500; }
+.coordinator-view .rbadge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+.coordinator-view .rb-Alto { background: var(--sb); color: var(--sf); }
+.coordinator-view .rb-Medio { background: #FAEEDA; color: #854F0B; }
+.coordinator-view .rb-Basso { background: var(--cb); color: var(--cf); }
+.coordinator-view .rb- { background: var(--bgs); color: #666; }
+.coordinator-view .fbody { padding: 12px 14px; border-top: 1px solid var(--brd); }
+.coordinator-view .rblock { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--brd); }
+.coordinator-view .rblock:last-child { border: none; margin: 0; padding: 0; }
+.coordinator-view .rname { font-size: 12px; font-weight: 600; color: var(--gm); margin-bottom: 8px; }
+.coordinator-view .fr {
+  display: flex; align-items: flex-start; gap: 6px; padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0; font-size: 12px;
+}
+.coordinator-view .fr:last-child { border: none; }
+.coordinator-view .fp { font-size: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+.coordinator-view .fp-det { color: var(--gd); }
+.coordinator-view .fp-rel { color: var(--gm); }
+.coordinator-view .fp-mar { color: #999; }
+.coordinator-view .fnm { flex: 1; line-height: 1.4; }
+.coordinator-view .cpill { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+.coordinator-view .c-esp { background: var(--eb); color: var(--ef); }
+.coordinator-view .c-sen { background: var(--sb); color: var(--sf); }
+.coordinator-view .c-cap { background: var(--cb); color: var(--cf); }
+.coordinator-view .note-box {
+  font-size: 11px; color: #666; background: var(--bgs);
+  border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-style: italic;
+}
+.coordinator-view .perv-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 0;
+  border-bottom: 1px solid var(--brd); font-size: 13px;
+}
+.coordinator-view .perv-row:last-child { border: none; }
+.coordinator-view .pn { flex: 1; }
+.coordinator-view .pc { font-size: 12px; color: #666; min-width: 60px; text-align: right; }
+.coordinator-view .pb { display: flex; gap: 3px; }
+.coordinator-view .pdot { width: 10px; height: 10px; border-radius: 50%; }
+.coordinator-view .empty { text-align: center; padding: 32px; color: #999; font-size: 14px; }
+.coordinator-view .tavola-title {
+  font-size: 14px; font-weight: 600; color: var(--gd);
+  padding: 12px 0 8px; border-bottom: 2px solid var(--gl); margin-bottom: 10px;
+}

@@ -1,6 +1,12 @@
 // GET/POST /api/contributions — implementato in S3/S4 (§3.1)
-// GET: filtra per sistema+pericolo. Il coordinatore vede tutti i contributi
-// del territorio per quella combinazione; il contributor solo i propri.
+// GET: sistema+pericolo filtrano una combinazione, ma sono opzionali — senza
+// filtri restituisce l'intero territorio (usato da CoordinatorView, S4, per
+// caricare Aggregata e Pervasività con una sola chiamata). Il coordinatore
+// vede tutti i contributi del territorio; il contributor solo i propri.
+// Include il join su users (name, discipline) per mostrare il referente in
+// AggregatedView senza una seconda chiamata (la RLS su users permette solo
+// self-read lato client, v. supabase/policies.sql — qui serve il join
+// lato server con la service-role key).
 // POST: crea o aggiorna un contributo. Verifica una riga RACI (ruolo R o A)
 // per (territory_id, user_id, sistema, pericolo, field) prima di scrivere —
 // la Function usa la service-role key e bypassa le RLS, quindi questo
@@ -26,15 +32,14 @@ async function handleGet(req, supabase, caller) {
   const url = new URL(req.url)
   const sistema = url.searchParams.get('sistema')
   const pericolo = url.searchParams.get('pericolo')
-  if (!sistema || !pericolo) return json({ error: 'sistema e pericolo sono obbligatori' }, 400)
 
   let query = supabase
     .from('contributions')
-    .select('*')
+    .select('*, users(name, discipline)')
     .eq('territory_id', caller.territory_id)
-    .eq('sistema', sistema)
-    .eq('pericolo', pericolo)
 
+  if (sistema) query = query.eq('sistema', sistema)
+  if (pericolo) query = query.eq('pericolo', pericolo)
   if (caller.role !== 'coordinator') query = query.eq('user_id', caller.id)
 
   const { data, error } = await query
