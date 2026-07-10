@@ -1,0 +1,20 @@
+/* Nav bar persistente (AppNav.jsx) — sta fuori dallo scope di ogni pagina
+   (.coordinator-view, .visualization, .admin-panel, .contributor-form
+   hanno ciascuna il proprio :root scoped), quindi definisce qui il colore
+   principale invece di condividerlo. Sfondo scuro pieno per distinguerla
+   visivamente dai tab interni di ogni pagina (chiari, testo verde su
+   sfondo chiaro) — altrimenti nav esterna e tab interni si confondono. */
+.app-nav {
+  --gd: #1E4D2B;
+  display: flex; gap: 4px; padding: 0 16px; background: var(--gd);
+  align-items: center; min-height: 48px; overflow-x: auto;
+  position: sticky; top: 0; z-index: 100;
+}
+.app-nav-link {
+  font-family: inherit; font-size: 13px; font-weight: 500; padding: 8px 14px;
+  color: rgba(255, 255, 255, .75); text-decoration: none; border-radius: 6px;
+  white-space: nowrap; transition: background .15s, color .15s; min-height: 32px;
+  display: inline-flex; align-items: center;
+}
+.app-nav-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.app-nav-link.on { background: rgba(255, 255, 255, .16); color: #fff; font-weight: 600; }

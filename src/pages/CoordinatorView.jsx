@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { useContributions } from '../hooks/useContributions.js'
 import AggregatedView from '../components/AggregatedView.jsx'
@@ -18,6 +18,9 @@ const TABS = [
 // selezionato (v. sotto), il che è anche ciò che rende lazy la chiamata a
 // /api/ai/overlaps richiesta dal §6.2 — nessun flag aggiuntivo necessario.
 // Solo coordinator: chi non lo è viene rimandato a /form come in Dashboard.
+// Il link "Admin" introdotto qui in S8 è stato rimosso: ora sta nella nav
+// bar condivisa (AppNav, montata da AppLayout) per evitare un doppione
+// visivo — v. audit navigazione del 2026-07-10.
 export default function CoordinatorView() {
   const { session, profile } = useAuth()
   const { contributions, error } = useContributions()
@@ -36,9 +39,6 @@ export default function CoordinatorView() {
             {label}
           </button>
         ))}
-        <Link className="tab" to="/admin" style={{ marginLeft: 'auto' }}>
-          Admin
-        </Link>
       </div>
       <div className="main">
         {error && <p>Errore nel caricamento dei contributi: {error}</p>}
