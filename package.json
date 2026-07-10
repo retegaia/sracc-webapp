@@ -11,6 +11,7 @@
     "seed:raci": "node scripts/seed-raci.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
     "@supabase/supabase-js": "^2.45.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

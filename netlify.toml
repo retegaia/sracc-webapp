@@ -3,6 +3,22 @@
   publish = "dist"
   functions = "netlify/functions"
 
+# Le route del modulo AI (§3.1 Tab.2) hanno un segmento in più
+# (/api/ai/classify, /api/ai/overlaps) rispetto al nome piatto della
+# Function (ai-classify.js, ai-overlaps.js): serve un redirect esplicito per
+# ciascuna, prima della regola generica sotto, altrimenti lo splat
+# "ai/classify" non trova alcuna function chiamata così e Netlify risponde
+# 404 "Function not found".
+[[redirects]]
+  from = "/api/ai/classify"
+  to = "/.netlify/functions/ai-classify"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai/overlaps"
+  to = "/.netlify/functions/ai-overlaps"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

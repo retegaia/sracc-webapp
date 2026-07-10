@@ -71,3 +71,19 @@
   font-size: 14px; font-weight: 600; color: var(--gd);
   padding: 12px 0 8px; border-bottom: 2px solid var(--gl); margin-bottom: 10px;
 }
+.coordinator-view .note-info {
+  background: var(--gl); border-left: 3px solid var(--gd); padding: 10px 12px;
+  border-radius: 0 8px 8px 0; font-size: 12px; color: var(--gd); margin-bottom: 10px;
+}
+.coordinator-view .signal-group { margin-bottom: 16px; }
+.coordinator-view .signal-group:last-child { margin-bottom: 0; }
+.coordinator-view .signal-hdr {
+  font-size: 12px; font-weight: 600; color: var(--ga); margin-bottom: 8px;
+}
+.coordinator-view .signal-row {
+  display: flex; align-items: center; gap: 8px; padding: 7px 0;
+  border-bottom: 1px solid #f0f0f0; font-size: 12px;
+}
+.coordinator-view .signal-row:last-child { border: none; }
+.coordinator-view .sg-field { flex: 1; font-weight: 500; }
+.coordinator-view .sg-detail { display: flex; align-items: center; flex-wrap: wrap; }

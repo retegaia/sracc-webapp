@@ -4,15 +4,19 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useContributions } from '../hooks/useContributions.js'
 import AggregatedView from '../components/AggregatedView.jsx'
 import PervasivityView from '../components/PervasivityView.jsx'
+import SignalView from '../components/SignalView.jsx'
 import '../styles/coordinatorView.css'
 
 const TABS = [
   ['aggregata', 'Vista aggregata'],
   ['pervasivita', 'Pervasività'],
-  // Segnalazioni (SignalView) arriva in S5: dipende da /api/ai/overlaps (Tab.4/Tab.6).
+  ['segnalazioni', 'Segnalazioni'],
 ]
 
-// Route /coordinator (Tab.3), tab Aggregata e Pervasività (Tab.4/Tab.6, S4).
+// Route /coordinator (Tab.3), tab Aggregata, Pervasività e Segnalazioni
+// (Tab.4/Tab.6, S4/S5). Il tab Segnalazioni monta SignalView solo quando
+// selezionato (v. sotto), il che è anche ciò che rende lazy la chiamata a
+// /api/ai/overlaps richiesta dal §6.2 — nessun flag aggiuntivo necessario.
 // Solo coordinator: chi non lo è viene rimandato a /form come in Dashboard.
 export default function CoordinatorView() {
   const { session, profile } = useAuth()
@@ -40,6 +44,7 @@ export default function CoordinatorView() {
           <>
             {tab === 'aggregata' && <AggregatedView contributions={contributions} />}
             {tab === 'pervasivita' && <PervasivityView contributions={contributions} />}
+            {tab === 'segnalazioni' && <SignalView contributions={contributions} />}
           </>
         )}
       </div>

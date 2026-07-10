@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { useFieldFactors } from '../hooks/useFactors.js'
+import { apiPost } from '../lib/apiClient.js'
 
 const COMPONENTI = ['Esposizione', 'Sensibilita', 'Capacita adattiva']
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
 const CSS_KEY = { Esposizione: 'esp', Sensibilita: 'sen', 'Capacita adattiva': 'cap' }
+const CONFIDENZA_LABEL = { alta: 'alta', media: 'media', bassa: 'bassa' }
 
 // Passo 2 del form referente (Tab.4): fetch da API al mount, scoped al field
-// corrente. La classificazione AI dei fattori liberi (/api/ai/classify) è
-// prevista in S5 (§6.1/Tab.6) — non ancora implementata, quindi qui la
-// componente per un fattore libero si sceglie manualmente, come nel prototipo.
+// corrente. L'aggiunta di un fattore a testo libero chiama /api/ai/classify
+// (S5, §6.1) per precompilare la componente suggerita — il referente resta
+// libero di correggerla scegliendo un altro pulsante (§3.2).
 export default function FactorChips({ sistema, pericolo, field, selected, onSelectedChange, onBack, onNext }) {
   const { factors, error } = useFieldFactors(sistema, pericolo, field)
   const [freeText, setFreeText] = useState('')
   const [showCompSel, setShowCompSel] = useState(false)
+  const [classifying, setClassifying] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState(null)
 
   function toggle(f) {
     const idx = selected.findIndex((x) => x.nome === f.nome_std && x.componente === f.componente)
@@ -35,10 +39,23 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
     ])
     setFreeText('')
     setShowCompSel(false)
+    setAiSuggestion(null)
   }
 
   function remove(i) {
     onSelectedChange(selected.filter((_, idx) => idx !== i))
+  }
+
+  function openCompSel() {
+    const testo = freeText.trim()
+    if (!testo) return
+    setShowCompSel(true)
+    setAiSuggestion(null)
+    setClassifying(true)
+    apiPost('ai/classify', { testo, sistema, pericolo, field })
+      .then((suggestion) => setAiSuggestion(suggestion))
+      .catch(() => setAiSuggestion(null))
+      .finally(() => setClassifying(false))
   }
 
   if (error) return <p>Errore nel caricamento dei fattori: {error}</p>
@@ -82,19 +99,30 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
           />
-          <button
-            className="btn-outline"
-            onClick={() => freeText.trim() && setShowCompSel(true)}
-          >
+          <button className="btn-outline" onClick={openCompSel}>
             + Aggiungi
           </button>
         </div>
         {showCompSel && (
           <div className="comp-sel">
             <p>Seleziona la componente per questo fattore:</p>
+            {classifying && <div className="ai-note">Classificazione AI in corso&hellip;</div>}
+            {!classifying && aiSuggestion && (
+              <div className="ai-note">
+                Suggerimento AI: <strong>{LABELS[aiSuggestion.componente]}</strong>
+                {' '}(confidenza {CONFIDENZA_LABEL[aiSuggestion.confidenza] || aiSuggestion.confidenza})
+                {aiSuggestion.motivazione && ` — ${aiSuggestion.motivazione}`}
+              </div>
+            )}
             <div className="comp-btns">
               {COMPONENTI.map((c) => (
-                <button key={c} onClick={() => addFree(c)}>{LABELS[c]}</button>
+                <button
+                  key={c}
+                  className={aiSuggestion?.componente === c ? 'ai-suggested' : undefined}
+                  onClick={() => addFree(c)}
+                >
+                  {LABELS[c]}
+                </button>
               ))}
               <button onClick={() => setShowCompSel(false)} style={{ fontSize: 12 }}>Annulla</button>
             </div>
