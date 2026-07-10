@@ -1,32 +1,85 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useFactorTaxonomy } from '../hooks/useFactors.js'
 import { apiPost } from '../lib/apiClient.js'
 
 const ROLE_LABEL = { R: 'Responsabile (R)', A: 'Approvatore (A)', C: 'Consultato (C)', I: 'Informato (I)' }
 
-// RACI editor (S8, AdminPanel): §3.1 Tab.2 elenca solo GET /api/raci — la
-// scrittura (POST /api/raci) è un'aggiunta di S8, non nella specifica
-// originale (confermato con Andrea Vallebona il 2026-07-10). Nessun
-// prototipo di riferimento: lista delle assegnazioni esistenti + form per
+// Raggruppa le righe RACI per (utente, sistema, field, ruolo) — nella
+// pratica un esperto ha lo stesso ruolo su un field a prescindere dal
+// pericolo (v. sotto), quindi elencare ogni riga separatamente appesantiva
+// la lettura senza aggiungere informazione. "Tutti i pericoli" quando il
+// gruppo copre l'intero set di pericoli noti per quel sistema (dalla
+// libreria, tree[sistema]); altrimenti elenca i pericoli effettivamente
+// presenti — così un'eventuale assegnazione parziale (dati storici, o
+// creata prima di questa modifica) resta leggibile e non viene falsata.
+function groupRaci(raci, tree) {
+  const groups = new Map()
+  for (const r of raci) {
+    const key = `${r.user_id}|||${r.sistema}|||${r.field}|||${r.role}`
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        user_id: r.user_id,
+        userName: r.users?.name ?? 'Utente sconosciuto',
+        sistema: r.sistema,
+        field: r.field,
+        role: r.role,
+        rows: [],
+      })
+    }
+    groups.get(key).rows.push(r)
+  }
+  return [...groups.values()]
+    .map((g) => {
+      const pericoliInGroup = [...new Set(g.rows.map((r) => r.pericolo))]
+      const allPericoli = tree?.[g.sistema] ? Object.keys(tree[g.sistema]) : []
+      const isAll = allPericoli.length > 0 && pericoliInGroup.length === allPericoli.length
+      return { ...g, pericoli: pericoliInGroup, isAll }
+    })
+    .sort((a, b) => a.sistema.localeCompare(b.sistema) || a.field.localeCompare(b.field) || a.userName.localeCompare(b.userName))
+}
+
+// RACI editor (S8, AdminPanel; semplificato il 2026-07-10). §3.1 Tab.2
+// elenca solo GET /api/raci — la scrittura (POST /api/raci) resta
+// un'aggiunta di S8, non nella specifica originale. Nessun prototipo di
+// riferimento: lista delle assegnazioni esistenti + form per
 // aggiungerne/modificarne una, non una matrice a griglia.
+//
+// Il form non chiede più il pericolo: nella matrice RACI reale un esperto
+// (urbanista, naturalista, ecc.) è assegnato per field, con lo stesso
+// ruolo su tutti i pericoli di quel sistema — chiedere di ripetere la
+// stessa scelta 3-4 volte era puro attrito. Al salvataggio si determinano
+// i pericoli reali del sistema scelto da useFactorTaxonomy (GET
+// /api/factors, stesso principio già seguito per gli assi della HeatMap
+// in S6 — non hardcodati) e si invia una POST /api/raci per ciascuno,
+// stesso utente/sistema/field/ruolo. Backend (raci.js) e isAssigned in
+// contributions.js restano invariati: il form si limita a chiamare
+// l'endpoint di upsert/cancellazione già esistente N volte invece di una.
 export default function RaciEditor({ users, raci, error, onChanged }) {
   const { tree, error: taxError } = useFactorTaxonomy()
-  const [form, setForm] = useState({ user_id: '', sistema: '', pericolo: '', field: '', role: 'R' })
+  const [form, setForm] = useState({ user_id: '', sistema: '', field: '', role: 'R' })
   const [status, setStatus] = useState('idle') // idle | saving | error
   const [errorMsg, setErrorMsg] = useState('')
 
   const sistemi = tree ? Object.keys(tree) : []
-  const pericoli = tree && form.sistema ? Object.keys(tree[form.sistema] ?? {}) : []
-  const fields = tree && form.sistema && form.pericolo ? tree[form.sistema]?.[form.pericolo] ?? [] : []
+  // Union dei field su tutti i pericoli del sistema scelto: senza il passo
+  // "pericolo" nel form, l'elenco dei field possibili non può più essere
+  // filtrato per una singola coppia sistema+pericolo.
+  const fields = useMemo(() => {
+    if (!tree || !form.sistema) return []
+    const all = new Set()
+    for (const list of Object.values(tree[form.sistema] ?? {})) {
+      for (const f of list) all.add(f)
+    }
+    return [...all].sort()
+  }, [tree, form.sistema])
+
+  const grouped = useMemo(() => groupRaci(raci || [], tree), [raci, tree])
 
   function setField(key, value) {
     setForm((f) => {
       const next = { ...f, [key]: value }
-      if (key === 'sistema') {
-        next.pericolo = ''
-        next.field = ''
-      }
-      if (key === 'pericolo') next.field = ''
+      if (key === 'sistema') next.field = ''
       return next
     })
   }
@@ -36,8 +89,14 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
     setStatus('saving')
     setErrorMsg('')
     try {
-      await apiPost('raci', form)
-      setForm((f) => ({ ...f, sistema: '', pericolo: '', field: '' }))
+      const pericoli = tree?.[form.sistema] ? Object.keys(tree[form.sistema]) : []
+      if (!pericoli.length) throw new Error('nessun pericolo trovato per questo sistema nella libreria')
+      await Promise.all(
+        pericoli.map((pericolo) =>
+          apiPost('raci', { user_id: form.user_id, sistema: form.sistema, pericolo, field: form.field, role: form.role })
+        )
+      )
+      setForm((f) => ({ ...f, sistema: '', field: '' }))
       setStatus('idle')
       onChanged()
     } catch (err) {
@@ -46,15 +105,13 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
     }
   }
 
-  async function remove(row) {
+  async function removeGroup(group) {
     try {
-      await apiPost('raci', {
-        user_id: row.user_id,
-        sistema: row.sistema,
-        pericolo: row.pericolo,
-        field: row.field,
-        role: null,
-      })
+      await Promise.all(
+        group.rows.map((r) =>
+          apiPost('raci', { user_id: r.user_id, sistema: r.sistema, pericolo: r.pericolo, field: r.field, role: null })
+        )
+      )
       onChanged()
     } catch (err) {
       setErrorMsg(err.message)
@@ -67,20 +124,20 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
         <div className="ct">Assegnazioni RACI</div>
         {error && <p>Errore nel caricamento: {error}</p>}
         {!error && raci === undefined && <p>Caricamento&hellip;</p>}
-        {!error && raci?.length === 0 && <div className="empty">Nessuna assegnazione ancora presente.</div>}
-        {!error && raci && raci.length > 0 && (
+        {!error && grouped.length === 0 && <div className="empty">Nessuna assegnazione ancora presente.</div>}
+        {!error && grouped.length > 0 && (
           <div className="admin-list">
-            {raci.map((r) => (
-              <div className="admin-row" key={r.id}>
+            {grouped.map((g) => (
+              <div className="admin-row" key={g.key}>
                 <span className="ar-name">
-                  {r.users?.name ?? 'Utente sconosciuto'}
+                  {g.userName}
                   <span className="ar-sub">
                     {' '}
-                    — {r.sistema} × {r.pericolo} × {r.field}
+                    — {g.sistema} × {g.field} — {g.isAll ? 'tutti i pericoli' : g.pericoli.join(', ')}
                   </span>
                 </span>
-                <span className="ar-badge">{r.role}</span>
-                <button className="ar-rm" onClick={() => remove(r)} title="Rimuovi">
+                <span className="ar-badge">{g.role}</span>
+                <button className="ar-rm" onClick={() => removeGroup(g)} title="Rimuovi">
                   &times;
                 </button>
               </div>
@@ -90,6 +147,7 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
       </div>
       <div className="card">
         <div className="ct">Aggiungi o modifica un'assegnazione</div>
+        <div className="note-info">Il ruolo scelto vale per il field su tutti i pericoli del sistema selezionato.</div>
         {taxError && <p>Errore nel caricamento della libreria: {taxError}</p>}
         <form onSubmit={submit}>
           <div className="sel-group">
@@ -115,27 +173,11 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
             </select>
           </div>
           <div className="sel-group">
-            <label>Pericolo</label>
-            <select
-              required
-              value={form.pericolo}
-              disabled={!form.sistema}
-              onChange={(e) => setField('pericolo', e.target.value)}
-            >
-              <option value="">&mdash; seleziona &mdash;</option>
-              {pericoli.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="sel-group">
             <label>Impact field</label>
             <select
               required
               value={form.field}
-              disabled={!form.pericolo}
+              disabled={!form.sistema}
               onChange={(e) => setField('field', e.target.value)}
             >
               <option value="">&mdash; seleziona &mdash;</option>
