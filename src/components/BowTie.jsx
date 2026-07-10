@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const FW_CLASS = { Determinante: 'fw-det', Rilevante: 'fw-rel', Marginale: 'fw-mar' }
 const FW_NUM = { Determinante: 3, Rilevante: 2, Marginale: 1 }
@@ -21,10 +21,40 @@ export default function BowTie({ contributions, sistema, pericolo, field }) {
   }, [contributions, sistema, pericolo, field])
 
   const [selectedId, setSelectedId] = useState('')
+  const layoutRef = useRef(null)
+  const [scrollable, setScrollable] = useState({ left: false, right: false })
 
   useEffect(() => {
     setSelectedId(filtered.length ? filtered[0].id : '')
   }, [filtered])
+
+  // A 960px .main (v. visualization.css) il bow-tie non eccede più il
+  // contenitore alle risoluzioni desktop comuni (1440/1280, verificato con
+  // i dati reali di produzione), ma resta un layout a 4 colonne con
+  // min-width fissi — su una finestra più stretta, o con contributi che
+  // hanno più fattori, può ancora superare lo spazio disponibile. In quel
+  // caso .bt-layout scrolla già (overflow-x:auto), ma senza indicazione
+  // visiva l'utente non lo scopre (bug segnalato il 2026-07-10): questo
+  // effect tiene sincronizzati due flag con lo scroll reale per mostrare
+  // un'ombra sul bordo che ha altro contenuto, invece di limitarsi a
+  // sperare che l'utente provi a trascinare.
+  useEffect(() => {
+    const el = layoutRef.current
+    if (!el) return
+    function update() {
+      setScrollable({
+        left: el.scrollLeft > 2,
+        right: el.scrollLeft < el.scrollWidth - el.clientWidth - 2,
+      })
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      el.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [selectedId])
 
   if (!contributions.length) {
     return <div className="empty">Nessun contributo disponibile per questo territorio.</div>
@@ -53,60 +83,62 @@ export default function BowTie({ contributions, sistema, pericolo, field }) {
           </select>
         </div>
       )}
-      <div className="card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div className="card">
         <div style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
           {c.sistema} × {c.pericolo} — {c.field} · <em>{c.users?.name ?? 'Referente sconosciuto'}</em>
         </div>
-        <div className="bt-layout">
-          <div className="bt-col" style={{ minWidth: 110 }}>
-            <div className="bt-lbl">Pericolo</div>
-            <div className="bt-node bt-per" style={{ flex: 1 }}>
-              <div className="bt-title">{c.pericolo}</div>
+        <div className={`bt-scroll-wrap${scrollable.left ? ' can-left' : ''}${scrollable.right ? ' can-right' : ''}`}>
+          <div className="bt-layout" ref={layoutRef}>
+            <div className="bt-col" style={{ minWidth: 110 }}>
+              <div className="bt-lbl">Pericolo</div>
+              <div className="bt-node bt-per" style={{ flex: 1 }}>
+                <div className="bt-title">{c.pericolo}</div>
+              </div>
             </div>
-          </div>
-          <div className="bt-arr">&rarr;</div>
-          <div className="bt-col" style={{ minWidth: 130 }}>
-            <div className="bt-lbl">Esposizione</div>
-            <div className="bt-node bt-esp" style={{ flex: 1 }}>
-              {esp.map((f, i) => (
-                <span className="bt-tags esp" key={i}>
-                  {f.nome}
-                </span>
-              ))}
-              {c.field && (
-                <div style={{ fontSize: 10, color: '#0C447C', marginTop: 6, fontStyle: 'italic' }}>{c.field}</div>
-              )}
+            <div className="bt-arr">&rarr;</div>
+            <div className="bt-col" style={{ minWidth: 130 }}>
+              <div className="bt-lbl">Esposizione</div>
+              <div className="bt-node bt-esp" style={{ flex: 1 }}>
+                {esp.map((f, i) => (
+                  <span className="bt-tags esp" key={i}>
+                    {f.nome}
+                  </span>
+                ))}
+                {c.field && (
+                  <div style={{ fontSize: 10, color: '#0C447C', marginTop: 6, fontStyle: 'italic' }}>{c.field}</div>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="bt-arr">&rarr;</div>
-          <div className="bt-col bt-vul">
-            <div className="bt-lbl">Vulnerabilità</div>
-            <div className="bt-node bt-sen">
-              <div className="vh s">&uarr; Sensibilità</div>
-              {sen.map((f, i) => (
-                <div className="fr" key={i}>
-                  <span className="dot ds" />
-                  <span className="fn">{f.nome}</span>
-                  <span className={`fw ${FW_CLASS[f.peso] || 'fw-mar'}`}>{FW_NUM[f.peso] || ''}</span>
-                </div>
-              ))}
+            <div className="bt-arr">&rarr;</div>
+            <div className="bt-col bt-vul">
+              <div className="bt-lbl">Vulnerabilità</div>
+              <div className="bt-node bt-sen">
+                <div className="vh s">&uarr; Sensibilità</div>
+                {sen.map((f, i) => (
+                  <div className="fr" key={i}>
+                    <span className="dot ds" />
+                    <span className="fn">{f.nome}</span>
+                    <span className={`fw ${FW_CLASS[f.peso] || 'fw-mar'}`}>{FW_NUM[f.peso] || ''}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bt-node bt-cap" style={{ marginTop: 6 }}>
+                <div className="vh c">&darr; Cap. adattiva</div>
+                {cap.map((f, i) => (
+                  <div className="fr" key={i}>
+                    <span className="dot dc" />
+                    <span className="fn">{f.nome}</span>
+                    <span className={`fw ${FW_CLASS[f.peso] || 'fw-mar'}`}>{FW_NUM[f.peso] || ''}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="bt-node bt-cap" style={{ marginTop: 6 }}>
-              <div className="vh c">&darr; Cap. adattiva</div>
-              {cap.map((f, i) => (
-                <div className="fr" key={i}>
-                  <span className="dot dc" />
-                  <span className="fn">{f.nome}</span>
-                  <span className={`fw ${FW_CLASS[f.peso] || 'fw-mar'}`}>{FW_NUM[f.peso] || ''}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bt-arr">&rarr;</div>
-          <div className="bt-col" style={{ minWidth: 110 }}>
-            <div className="bt-lbl">Rischio atteso</div>
-            <div className="bt-node bt-ris" style={{ flex: 1 }}>
-              <div className={`r-big r-${r}`}>{r}</div>
+            <div className="bt-arr">&rarr;</div>
+            <div className="bt-col" style={{ minWidth: 110 }}>
+              <div className="bt-lbl">Rischio atteso</div>
+              <div className="bt-node bt-ris" style={{ flex: 1 }}>
+                <div className={`r-big r-${r}`}>{r}</div>
+              </div>
             </div>
           </div>
         </div>

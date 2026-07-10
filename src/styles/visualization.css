@@ -18,7 +18,12 @@
   align-items: center;
 }
 .visualization .tab.on { color: var(--gd); border-bottom-color: var(--gd); }
-.visualization .main { max-width: 720px; margin: 0 auto; padding: 16px; }
+/* 960px (non 720px come le altre pagine): il bow-tie è un layout a 4
+   colonne intrinsecamente più largo — a 720px il contenuto (764px min a
+   1440px viewport, misurato) eccede sempre il contenitore. Verificato che
+   960px elimina l'overflow orizzontale alle risoluzioni desktop comuni
+   (1440/1280) con i dati reali di produzione — v. bug fix 2026-07-10. */
+.visualization .main { max-width: 960px; margin: 0 auto; padding: 16px; }
 .visualization .card {
   background: var(--bg); border: 1px solid var(--brd); border-radius: 12px;
   padding: 16px; margin-bottom: 14px;
@@ -42,6 +47,22 @@
 .visualization button:active { opacity: .7; }
 
 /* BOW-TIE */
+/* .bt-layout scrolla in autonomia (overflow-x:auto) quando le 4 colonne
+   superano lo spazio disponibile, ma senza indicazione visiva l'utente non
+   se ne accorge — su macOS le scrollbar overlay sono invisibili finché non
+   si interagisce (bug segnalato il 2026-07-10). .bt-scroll-wrap mostra
+   un'ombra sfumata sul bordo che nasconde altro contenuto, sincronizzata
+   con lo scroll reale via le classi can-left/can-right (BowTie.jsx). */
+.visualization .bt-scroll-wrap { position: relative; }
+.visualization .bt-scroll-wrap::before,
+.visualization .bt-scroll-wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 28px; pointer-events: none;
+  opacity: 0; transition: opacity .15s; z-index: 2;
+}
+.visualization .bt-scroll-wrap::before { left: 0; background: linear-gradient(to right, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)); }
+.visualization .bt-scroll-wrap::after { right: 0; background: linear-gradient(to left, rgba(0, 0, 0, .12), rgba(0, 0, 0, 0)); }
+.visualization .bt-scroll-wrap.can-left::before { opacity: 1; }
+.visualization .bt-scroll-wrap.can-right::after { opacity: 1; }
 .visualization .bt-layout {
   display: flex; align-items: stretch; gap: 0; min-height: 280px; overflow-x: auto;
   -webkit-overflow-scrolling: touch;
