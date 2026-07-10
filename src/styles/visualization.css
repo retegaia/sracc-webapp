@@ -109,3 +109,14 @@
 .visualization .rp-Medio { background: #FAEEDA; color: #854F0B; }
 .visualization .rp-Basso { background: var(--cb); color: var(--cf); }
 .visualization .legend-bar { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: #999; margin-bottom: 12px; }
+
+/* GRAFO (S7) */
+.visualization .g-filters { margin-bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.visualization .g-fbtn { font-size: 12px; padding: 7px 12px; min-height: 36px; }
+.visualization .g-fbtn.on { background: var(--gd); color: #fff; border-color: var(--gd); }
+.visualization #graphsvg { width: 100%; border: 1px solid var(--brd); border-radius: 10px; background: var(--bgs); display: block; touch-action: none; }
+.visualization .g-tooltip {
+  position: fixed; background: var(--bg); border: 1px solid var(--brd); border-radius: 8px;
+  padding: 10px 12px; font-size: 12px; pointer-events: none; display: none; z-index: 999;
+  max-width: 200px; line-height: 1.5; box-shadow: 0 2px 12px rgba(0, 0, 0, .1);
+}
