@@ -4,12 +4,14 @@ import { useContributions } from '../hooks/useContributions.js'
 import BowTie from '../components/BowTie.jsx'
 import HeatMap from '../components/HeatMap.jsx'
 import PervasityGraph from '../components/PervasityGraph.jsx'
+import ExportView from '../components/ExportView.jsx'
 import '../styles/visualization.css'
 
 const TYPES = [
   ['bowtie', 'Bow-tie'],
   ['heatmap', 'Heatmap'],
   ['grafo', 'Grafo pervasività'],
+  ['esporta', 'Esporta'],
 ]
 
 // Route /visualize/:type (Tab.3, S6/S7): accessibile a tutti i ruoli
@@ -52,7 +54,8 @@ export default function Visualization() {
             )}
             {type === 'heatmap' && <HeatMap contributions={contributions} />}
             {type === 'grafo' && <PervasityGraph contributions={contributions} />}
-            {type !== 'bowtie' && type !== 'heatmap' && type !== 'grafo' && (
+            {type === 'esporta' && <ExportView />}
+            {type !== 'bowtie' && type !== 'heatmap' && type !== 'grafo' && type !== 'esporta' && (
               <div className="empty">Visualizzazione &ldquo;{type}&rdquo; non disponibile.</div>
             )}
           </>

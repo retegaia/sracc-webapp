@@ -131,6 +131,12 @@
 .visualization .rp-Basso { background: var(--cb); color: var(--cf); }
 .visualization .legend-bar { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: #999; margin-bottom: 12px; }
 
+/* ESPORTA (S9) */
+.visualization .sel-group { margin-bottom: 12px; }
+.visualization .sel-group label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
+.visualization .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.visualization .btn-primary { background: var(--gd); color: #fff; border-color: var(--gd); }
+
 /* GRAFO (S7) */
 .visualization .g-filters { margin-bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
 .visualization .g-fbtn { font-size: 12px; padding: 7px 12px; min-height: 36px; }

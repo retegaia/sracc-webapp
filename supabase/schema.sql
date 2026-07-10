@@ -74,3 +74,21 @@ create table locks (
 -- Nota: le RLS policies (lettura libera per territorio, scrittura solo su
 -- field assegnati nel RACI con ruolo R/A, bypass per il coordinatore) si
 -- configurano in Supabase → Authentication → Policies, non qui (§2.1).
+
+-- Aggiunta per il modulo di export delle catene d'impatto (2026-07-10).
+-- Da eseguire una sola volta nel SQL Editor del progetto Supabase, come lo
+-- schema iniziale sopra. Libreria di sola lettura, stesso pattern di
+-- `factors`: territory_id NULL = libreria condivisa (qui l'intero
+-- contenuto, importato da docs/Impatti_Attesi_estratti.xlsx via
+-- scripts/seed-impatti.js, è condiviso — nessun territorio scrive righe
+-- proprie oggi, ma il campo resta per coerenza con `factors` e per
+-- un'eventuale libreria territoriale futura).
+create table impatti_attesi (
+  id uuid primary key default gen_random_uuid(),
+  territory_id uuid references territories, -- NULL = libreria condivisa
+  sistema text not null,
+  pericolo text not null,
+  field text not null,
+  impatto text not null,
+  ordine integer
+);
