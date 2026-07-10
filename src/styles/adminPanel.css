@@ -1,0 +1,62 @@
+/* Stili dell'Admin Panel (S8) — nessun prototipo di riferimento in docs/:
+   riusa le stesse variabili e lo stesso vocabolario visivo (.card/.ct/.tabs)
+   già stabiliti in coordinatorView.css/contributorForm.css, adattati a
+   liste di record con azione "rimuovi" (.admin-list/.admin-row/.ar-*). */
+.admin-panel :root,
+.admin-panel {
+  --gd: #1E4D2B; --gm: #4A7C59; --gt: #2D7D7F; --ga: #C8860A;
+  --eb: #E6F1FB; --ef: #0C447C; --sb: #FCEBEB; --sf: #A32D2D; --cb: #EAF3DE; --cf: #3B6D11;
+  --gl: #EEF4F0; --brd: #E0E0E0; --bg: #fff; --bgs: #f7f7f5;
+}
+.admin-panel .tabs {
+  display: flex; gap: 2px; padding: 12px 16px 0; background: var(--bgs);
+  border-bottom: 1px solid var(--brd); overflow-x: auto;
+}
+.admin-panel .tab {
+  font-family: inherit; padding: 9px 16px; font-size: 13px; font-weight: 500; border: none;
+  background: none; cursor: pointer; color: #666; border-bottom: 3px solid transparent;
+  white-space: nowrap; min-height: 44px;
+}
+.admin-panel .tab.on { color: var(--gd); border-bottom-color: var(--gd); }
+.admin-panel .main { max-width: 640px; margin: 0 auto; padding: 16px; }
+.admin-panel .card {
+  background: var(--bg); border: 1px solid var(--brd); border-radius: 12px;
+  padding: 16px; margin-bottom: 14px;
+}
+.admin-panel .ct {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: #666; margin-bottom: 12px;
+}
+.admin-panel .empty { text-align: center; padding: 24px; color: #999; font-size: 14px; }
+.admin-panel select, .admin-panel input[type=text], .admin-panel input[type=email] {
+  font-family: inherit; font-size: 14px; width: 100%;
+  padding: 10px 12px; border: 1px solid var(--brd); border-radius: 8px;
+  background: var(--bg); color: #1a1a1a; min-height: 44px;
+}
+.admin-panel select:disabled { opacity: .35; }
+.admin-panel .sel-group { margin-bottom: 12px; }
+.admin-panel label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
+.admin-panel button {
+  font-family: inherit; font-size: 14px; padding: 11px 18px; border-radius: 8px;
+  border: 1px solid var(--brd); background: var(--bgs); color: #1a1a1a;
+  cursor: pointer; min-height: 44px; transition: opacity .15s;
+}
+.admin-panel button:active { opacity: .7; }
+.admin-panel button:disabled { opacity: .5; cursor: default; }
+.admin-panel .btn-primary { background: var(--gd); color: #fff; border-color: var(--gd); }
+.admin-panel .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-panel .admin-list { display: flex; flex-direction: column; gap: 6px; }
+.admin-panel .admin-row {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  background: var(--bgs); border: 1px solid var(--brd); border-radius: 8px;
+}
+.admin-panel .ar-name { flex: 1; font-size: 13px; line-height: 1.3; }
+.admin-panel .ar-sub { font-size: 12px; color: #999; }
+.admin-panel .ar-badge {
+  font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px;
+  background: var(--gl); color: var(--gd); flex-shrink: 0;
+}
+.admin-panel .ar-rm {
+  background: none; border: none; padding: 4px; font-size: 20px; color: #999;
+  min-height: 32px; min-width: 32px; cursor: pointer; flex-shrink: 0;
+}

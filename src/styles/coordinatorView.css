@@ -12,7 +12,7 @@
 .coordinator-view .tab {
   font-family: inherit; padding: 9px 16px; font-size: 13px; font-weight: 500; border: none;
   background: none; cursor: pointer; color: #666; border-bottom: 3px solid transparent;
-  white-space: nowrap; min-height: 44px;
+  white-space: nowrap; min-height: 44px; text-decoration: none; display: inline-flex; align-items: center;
 }
 .coordinator-view .tab.on { color: var(--gd); border-bottom-color: var(--gd); }
 .coordinator-view .main { max-width: 720px; margin: 0 auto; padding: 16px; }

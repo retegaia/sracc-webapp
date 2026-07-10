@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { useContributions } from '../hooks/useContributions.js'
 import AggregatedView from '../components/AggregatedView.jsx'
@@ -36,6 +36,9 @@ export default function CoordinatorView() {
             {label}
           </button>
         ))}
+        <Link className="tab" to="/admin" style={{ marginLeft: 'auto' }}>
+          Admin
+        </Link>
       </div>
       <div className="main">
         {error && <p>Errore nel caricamento dei contributi: {error}</p>}
