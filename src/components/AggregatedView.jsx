@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { apiPost } from '../lib/apiClient.js'
 
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
 const CSS_KEY = { Esposizione: 'esp', Sensibilita: 'sen', 'Capacita adattiva': 'cap' }
@@ -34,8 +35,15 @@ function groupByTavola(contributions) {
 // espansione field via accordion — identico al prototipo
 // (docs/SRACC_Vista_Coordinatore.html), a parte le chiavi di componente
 // senza accento (Sensibilita/Capacita adattiva) imposte dal CHECK di schema.
-export default function AggregatedView({ contributions }) {
+// Il bottone "Valida" (S10, §10 v4) chiama POST /api/contributions/validate
+// e ricarica via onValidated (passato da CoordinatorView come refetch di
+// useContributions) — la Function applica la regola C1 (tutti i contributi
+// della combinazione devono essere almeno 'submitted'), qui si mostra solo
+// l'eventuale errore restituito, nessuna validazione duplicata lato client.
+export default function AggregatedView({ contributions, onValidated }) {
   const [open, setOpen] = useState(() => new Set())
+  const [busyId, setBusyId] = useState(null)
+  const [errors, setErrors] = useState({})
   const tavole = useMemo(() => groupByTavola(contributions), [contributions])
 
   if (!contributions.length) {
@@ -51,6 +59,20 @@ export default function AggregatedView({ contributions }) {
     })
   }
 
+  async function handleValidate(e, id, sistema, pericolo, field) {
+    e.stopPropagation()
+    setBusyId(id)
+    setErrors((prev) => ({ ...prev, [id]: null }))
+    try {
+      await apiPost('contributions/validate', { sistema, pericolo, field })
+      onValidated?.()
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, [id]: err.message }))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <>
       {tavole.map((t) => (
@@ -62,14 +84,27 @@ export default function AggregatedView({ contributions }) {
             const id = `${t.sistema}||${t.pericolo}||${field}`
             const mr = maxRischio(conts)
             const isOpen = open.has(id)
+            const allValidated = conts.every((c) => c.status === 'validated')
             return (
               <div className="fblock" key={id}>
                 <div className="fhdr" onClick={() => toggle(id)}>
                   <span className="fn">{field}</span>
                   <span className={`rbadge rb-${mr}`}>{mr || '—'}</span>
                   <span style={{ color: '#999', marginLeft: 6 }}>{conts.length} contrib.</span>
+                  {allValidated ? (
+                    <span className="validated-badge">✓ Validato</span>
+                  ) : (
+                    <button
+                      className="btn-validate"
+                      disabled={busyId === id}
+                      onClick={(e) => handleValidate(e, id, t.sistema, t.pericolo, field)}
+                    >
+                      {busyId === id ? 'Validazione…' : 'Valida'}
+                    </button>
+                  )}
                   <span style={{ color: '#999', marginLeft: 6, fontSize: 18 }}>{isOpen ? '⌄' : '›'}</span>
                 </div>
+                {errors[id] && <p style={{ color: 'var(--sf)', fontSize: 12, padding: '0 14px', margin: '6px 0' }}>Errore: {errors[id]}</p>}
                 {isOpen && (
                   <div className="fbody open">
                     {conts.map((c, i) => (

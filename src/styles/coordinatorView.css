@@ -67,6 +67,16 @@
 .coordinator-view .pb { display: flex; gap: 3px; }
 .coordinator-view .pdot { width: 10px; height: 10px; border-radius: 50%; }
 .coordinator-view .empty { text-align: center; padding: 32px; color: #999; font-size: 14px; }
+.coordinator-view .btn-validate {
+  font-family: inherit; font-size: 11px; font-weight: 600; margin-left: 8px;
+  padding: 4px 10px; border-radius: 20px; border: 1px solid var(--gd); color: var(--gd);
+  background: #fff; cursor: pointer;
+}
+.coordinator-view .btn-validate:disabled { opacity: .6; cursor: default; }
+.coordinator-view .validated-badge {
+  font-size: 11px; font-weight: 500; margin-left: 8px; padding: 3px 10px;
+  border-radius: 20px; background: var(--cb); color: var(--cf);
+}
 .coordinator-view .tavola-title {
   font-size: 14px; font-weight: 600; color: var(--gd);
   padding: 12px 0 8px; border-bottom: 2px solid var(--gl); margin-bottom: 10px;

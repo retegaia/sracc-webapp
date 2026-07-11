@@ -92,3 +92,52 @@ create table impatti_attesi (
   impatto text not null,
   ordine integer
 );
+
+-- Aggiunta per S10 (§10 specifica tecnica v4, Tab.6/8): pesatura indicatori.
+-- Da eseguire una sola volta nel SQL Editor del progetto Supabase, come le
+-- altre aggiunte sopra. Due tabelle separate da `factors`/`contributions`:
+-- `indicatori` è la libreria di sola lettura (stesso pattern di `factors` e
+-- `impatti_attesi`: territory_id NULL = libreria condivisa, qui l'intero
+-- contenuto importato da
+-- docs/PAC_BarigaduGuilcer_Step_5_Lista_Indicatori_Unificata_v2.xlsx via
+-- scripts/seed-indicatori.js), `indicatori_scelti` è l'equivalente di
+-- `contributions` per la Fase 2: una riga per referente×field con gli
+-- indicatori selezionati e la loro pesatura. A differenza di `factors`,
+-- l'unique key di `indicatori` non include territory_id — oggi la libreria è
+-- interamente condivisa e non esiste ancora un caso di indicatori
+-- territoriali propri.
+create table indicatori (
+  id                 uuid primary key default gen_random_uuid(),
+  territory_id       uuid references territories,  -- NULL = libreria condivisa
+  nome               text not null,
+  componente         text check (componente in ('Pericolo','Esposizione','Sensibilita','Capacita adattiva')),
+  categoria          text,
+  tipologia          text check (tipologia in ('quantitativo','qualitativo') or tipologia is null),
+  sistema            text not null,
+  pericolo           text not null,
+  field              text not null,
+  descrizione        text,
+  unita_misura       text,
+  fonte_dato         text,
+  link_fonte         text,
+  anno               integer,
+  clima_osservato    text,
+  clima_futuro_rcp45 text,
+  referenza          text,
+  base_layer_gis     text,
+  unique (nome, sistema, pericolo, field, componente)
+);
+
+create table indicatori_scelti (
+  id            uuid primary key default gen_random_uuid(),
+  territory_id  uuid references territories,
+  user_id       uuid references users,
+  sistema       text not null,
+  pericolo      text not null,
+  field         text not null,
+  indicatori    jsonb not null,  -- array di {indicatore_id, nome, componente, peso}
+  status        text default 'draft',  -- draft | submitted
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now(),
+  unique (territory_id, user_id, sistema, pericolo, field)
+);

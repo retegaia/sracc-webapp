@@ -10,7 +10,8 @@
     "seed:library": "node scripts/seed-library.js",
     "seed:raci": "node scripts/seed-raci.js",
     "seed:impatti": "node scripts/seed-impatti.js",
-    "migrate:catene-impatto": "node scripts/migrate-catene-impatto.js"
+    "migrate:catene-impatto": "node scripts/migrate-catene-impatto.js",
+    "seed:indicatori": "node scripts/seed-indicatori.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

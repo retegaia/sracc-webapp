@@ -23,7 +23,7 @@ const TABS = [
 // visivo — v. audit navigazione del 2026-07-10.
 export default function CoordinatorView() {
   const { session, profile } = useAuth()
-  const { contributions, error } = useContributions()
+  const { contributions, error, refetch } = useContributions()
   const [tab, setTab] = useState('aggregata')
 
   if (session === undefined || profile === undefined) return <p>Caricamento&hellip;</p>
@@ -45,7 +45,7 @@ export default function CoordinatorView() {
         {!error && contributions === undefined && <p>Caricamento contributi&hellip;</p>}
         {!error && contributions !== undefined && (
           <>
-            {tab === 'aggregata' && <AggregatedView contributions={contributions} />}
+            {tab === 'aggregata' && <AggregatedView contributions={contributions} onValidated={refetch} />}
             {tab === 'pervasivita' && <PervasivityView contributions={contributions} />}
             {tab === 'segnalazioni' && <SignalView contributions={contributions} />}
           </>

@@ -31,6 +31,13 @@ alter table factors enable row level security;
 alter table contributions enable row level security;
 alter table locks enable row level security;
 
+-- S10 (§10 v4): stesso no-op difensivo delle righe sopra — indicatori.js e
+-- indicatori-scelti.js usano SUPABASE_SERVICE_KEY come tutte le altre
+-- Function, quindi anche qui l'unica autorizzazione reale è quella
+-- applicata lato Function (RACI + stato validated del contributo), non RLS.
+alter table indicatori enable row level security;
+alter table indicatori_scelti enable row level security;
+
 -- Unica eccezione: Dashboard (S3, Tab.3) deve sapere il proprio ruolo per
 -- decidere il redirect (/form vs /coordinator) e lo legge direttamente via
 -- supabase-js con l'anon key + sessione utente, non tramite una Function.

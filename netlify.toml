@@ -19,6 +19,14 @@
   to = "/.netlify/functions/ai-overlaps"
   status = 200
 
+# Stesso motivo delle due regole sopra: /api/contributions/validate (S10,
+# §10 v4) ha un segmento in più rispetto al nome della Function
+# (contributions-validate.js).
+[[redirects]]
+  from = "/api/contributions/validate"
+  to = "/.netlify/functions/contributions-validate"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
