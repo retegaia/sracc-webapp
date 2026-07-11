@@ -6,7 +6,7 @@ const ROLE_LABEL = { coordinator: 'Coordinatore', contributor: 'Referente', obse
 // Gestione utenti (S8, AdminPanel, §5.1): crea un utente e invia il magic
 // link — stesso flusso già implementato in S2 (POST /api/magic-link), qui
 // finalmente raggiungibile da una UI invece che solo dallo script di seed.
-export default function UserManager({ territoryId, users, error, onCreated }) {
+export default function UserManager({ users, error, onCreated }) {
   const [form, setForm] = useState({ email: '', name: '', discipline: '', role: 'contributor' })
   const [status, setStatus] = useState('idle') // idle | saving | error
   const [errorMsg, setErrorMsg] = useState('')
@@ -20,7 +20,7 @@ export default function UserManager({ territoryId, users, error, onCreated }) {
     setStatus('saving')
     setErrorMsg('')
     try {
-      await apiPost('magic-link', { ...form, territory_id: territoryId })
+      await apiPost('magic-link', form)
       setForm({ email: '', name: '', discipline: '', role: 'contributor' })
       setStatus('idle')
       onCreated()

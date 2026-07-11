@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import '../styles/appNav.css'
 
 const COORDINATOR_LINKS = [
@@ -28,11 +29,12 @@ const CONTRIBUTOR_LINKS = [
 // comunque rimandato indietro dal redirect di guardia del componente.
 export default function AppNav() {
   const { profile } = useAuth()
+  const { role, territories, clearSelection } = useActiveTerritory()
   const location = useLocation()
 
   if (!profile) return null
 
-  const links = profile.role === 'coordinator' ? COORDINATOR_LINKS : CONTRIBUTOR_LINKS
+  const links = role === 'coordinator' ? COORDINATOR_LINKS : CONTRIBUTOR_LINKS
 
   return (
     <nav className="app-nav">
@@ -44,6 +46,11 @@ export default function AppNav() {
           </Link>
         )
       })}
+      {territories.length > 1 && (
+        <button className="app-nav-link app-nav-action" onClick={clearSelection}>
+          Cambia territorio
+        </button>
+      )}
     </nav>
   )
 }

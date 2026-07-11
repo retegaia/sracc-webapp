@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import { useUsers, useRaci, useTerritory } from '../hooks/useAdmin.js'
 import UserManager from '../components/UserManager.jsx'
 import RaciEditor from '../components/RaciEditor.jsx'
 import TerritoryConfig from '../components/TerritoryConfig.jsx'
+import CreateTerritory from '../components/CreateTerritory.jsx'
 import '../styles/adminPanel.css'
 
 const TABS = [
@@ -19,6 +21,7 @@ const TABS = [
 // coerenza con CoordinatorView/Visualization, contenuti decisi da zero.
 export default function AdminPanel() {
   const { session, profile } = useAuth()
+  const { role } = useActiveTerritory()
   const { users, error: usersError, refetch: refetchUsers } = useUsers()
   const { raci, error: raciError, refetch: refetchRaci } = useRaci()
   const { territory, error: territoryError, refetch: refetchTerritory } = useTerritory()
@@ -27,7 +30,7 @@ export default function AdminPanel() {
   if (session === undefined || profile === undefined) return <p>Caricamento&hellip;</p>
   if (!session) return <p>Non autenticato. Usa il link ricevuto via email.</p>
   if (!profile) return <p>Utente autenticato ma nessun profilo associato. Contatta il coordinatore.</p>
-  if (profile.role !== 'coordinator') return <Navigate to="/form" replace />
+  if (role !== 'coordinator') return <Navigate to="/form" replace />
 
   return (
     <div className="admin-panel">
@@ -40,11 +43,14 @@ export default function AdminPanel() {
       </div>
       <div className="main">
         {tab === 'utenti' && (
-          <UserManager territoryId={profile.territory_id} users={users} error={usersError} onCreated={refetchUsers} />
+          <UserManager users={users} error={usersError} onCreated={refetchUsers} />
         )}
         {tab === 'raci' && <RaciEditor users={users} raci={raci} error={raciError} onChanged={refetchRaci} />}
         {tab === 'territorio' && (
-          <TerritoryConfig territory={territory} error={territoryError} onSaved={refetchTerritory} />
+          <>
+            <TerritoryConfig territory={territory} error={territoryError} onSaved={refetchTerritory} />
+            <CreateTerritory />
+          </>
         )}
       </div>
     </div>

@@ -5,7 +5,7 @@
 // dalla vista coordinatore (SignalView), mai dal form referente (§6.2) — per
 // questo l'accesso è ristretto al ruolo coordinator, come /api/raci.
 import Anthropic from '@anthropic-ai/sdk'
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 // V. nota in ai-classify.js: claude-sonnet-4-20250514 (§6.1) è ritirato,
 // sostituito da claude-sonnet-5 — stessa deviazione, stesso modello per
@@ -47,9 +47,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
-  if (caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  if (result.caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
 
   let body
   try {

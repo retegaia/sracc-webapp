@@ -5,7 +5,7 @@
 // l'altra. ANTHROPIC_API_KEY resta sempre lato server — mai esposta al
 // client (§3, Tab.1); questa Function è l'unico punto che la legge.
 import Anthropic from '@anthropic-ai/sdk'
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 // La specifica (§6.1) indica claude-sonnet-4-20250514, ma quel modello
 // risulta ritirato lato Anthropic (404 verificato con la chiave in uso, oggi
@@ -54,8 +54,8 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
 
   let body
   try {

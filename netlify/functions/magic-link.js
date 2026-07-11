@@ -2,34 +2,23 @@
 // Solo il coordinatore può invitare un nuovo referente: crea (o recupera)
 // l'utente Supabase Auth, allinea la riga in `users`, poi innesca l'invio
 // del magic link tramite l'email integrata di Supabase Auth.
-import { createClient } from '@supabase/supabase-js'
+//
+// Multi-territorio (2026-07-11): il territorio di destinazione dell'invito
+// è il territorio ATTIVO del chiamante (header X-Territory-Id, risolto da
+// resolveCaller — stesso meccanismo di tutte le altre Function), non più un
+// campo territory_id nel body. L'autorizzazione richiede coordinator su
+// QUEL territorio specifico, non un ruolo globale.
+//
+// Se l'email corrisponde a un utente già esistente (es. stesso team di un
+// altro territorio, invitato anche qui — lo scenario reale dell'avvio di un
+// secondo territorio), users.territory_id/role NON vengono sovrascritte:
+// riflettono solo il primo territorio a cui è stato invitato e restano
+// tali per compatibilità col bootstrap legacy. La riga di accesso vera per
+// QUESTO territorio è sempre e solo in user_territories.
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 import { findAuthUserByEmail, sendMagicLink } from './_lib/authUsers.js'
 
-const supabaseUrl = process.env.SUPABASE_URL
-const serviceKey = process.env.SUPABASE_SERVICE_KEY
 const siteUrl = process.env.SITE_URL
-
-function json(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  })
-}
-
-async function getCallerRole(supabase, authHeader) {
-  if (!authHeader?.startsWith('Bearer ')) return null
-  const jwt = authHeader.slice('Bearer '.length)
-  const { data, error } = await supabase.auth.getUser(jwt)
-  if (error || !data?.user) return null
-
-  const { data: row, error: rowErr } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', data.user.id)
-    .maybeSingle()
-  if (rowErr || !row) return null
-  return row.role
-}
 
 async function ensureAuthUser(supabase, email) {
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
@@ -48,14 +37,15 @@ async function ensureAuthUser(supabase, email) {
 
 export default async (req) => {
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
-  if (!supabaseUrl || !serviceKey || !siteUrl) return json({ error: 'server non configurato' }, 500)
+  if (!siteUrl) return json({ error: 'server non configurato' }, 500)
 
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
+  const supabase = getServiceClient()
+  if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const role = await getCallerRole(supabase, req.headers.get('authorization'))
-  if (role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
+  if (caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
 
   let body
   try {
@@ -64,13 +54,15 @@ export default async (req) => {
     return json({ error: 'body JSON non valido' }, 400)
   }
 
-  const { email, name, discipline, role: newRole, territory_id } = body ?? {}
-  if (!email || !name || !newRole || !territory_id) {
-    return json({ error: 'email, name, role e territory_id sono obbligatori' }, 400)
+  const { email, name, discipline, role: newRole } = body ?? {}
+  if (!email || !name || !newRole) {
+    return json({ error: 'email, name e role sono obbligatori' }, 400)
   }
   if (!['coordinator', 'contributor', 'observer'].includes(newRole)) {
     return json({ error: 'role non valido' }, 400)
   }
+
+  const territoryId = caller.territory_id
 
   let userId
   let isNew
@@ -80,10 +72,27 @@ export default async (req) => {
     return json({ error: err.message }, 500)
   }
 
-  const { error: upsertErr } = await supabase
+  const { data: existingRow, error: existingErr } = await supabase
     .from('users')
-    .upsert({ id: userId, territory_id, name, discipline, role: newRole }, { onConflict: 'id' })
-  if (upsertErr) return json({ error: upsertErr.message }, 500)
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle()
+  if (existingErr) return json({ error: existingErr.message }, 500)
+
+  if (existingRow) {
+    const { error: updErr } = await supabase.from('users').update({ name, discipline }).eq('id', userId)
+    if (updErr) return json({ error: updErr.message }, 500)
+  } else {
+    const { error: insErr } = await supabase
+      .from('users')
+      .insert({ id: userId, territory_id: territoryId, name, discipline, role: newRole })
+    if (insErr) return json({ error: insErr.message }, 500)
+  }
+
+  const { error: utErr } = await supabase
+    .from('user_territories')
+    .upsert({ user_id: userId, territory_id: territoryId, role: newRole }, { onConflict: 'user_id,territory_id' })
+  if (utErr) return json({ error: utErr.message }, 500)
 
   const { error: otpErr } = await sendMagicLink(supabase, email, siteUrl)
   if (otpErr) return json({ error: otpErr.message }, 500)

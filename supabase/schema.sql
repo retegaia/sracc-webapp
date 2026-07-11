@@ -141,3 +141,29 @@ create table indicatori_scelti (
   updated_at    timestamptz default now(),
   unique (territory_id, user_id, sistema, pericolo, field)
 );
+
+-- Multi-territorio reale (2026-07-11): fino ad oggi users.territory_id era
+-- una colonna scalare, quindi un utente poteva operare su un solo
+-- territorio. Con l'avvio di un secondo territorio (stesso team del primo,
+-- alcune persone coordinator su un territorio e non sull'altro) serve una
+-- tabella ponte user_id×territory_id×role, che diventa la fonte di verità
+-- per l'autorizzazione al posto di users.territory_id/users.role.
+-- Da eseguire una sola volta nel SQL Editor del progetto Supabase, come le
+-- altre aggiunte sopra. users.territory_id/users.role NON vengono toccate
+-- o rimosse: restano per compatibilità (bootstrap del primo invito di un
+-- utente, v. magic-link.js) ma non sono più lette per decidere permessi.
+create table user_territories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users not null,
+  territory_id uuid references territories not null,
+  role text check (role in ('coordinator','contributor','observer')) not null,
+  unique (user_id, territory_id)
+);
+
+-- Backfill non distruttivo: una riga user_territories per ogni utente
+-- esistente che ha già territory_id/role compilati su users. Idempotente
+-- (on conflict do nothing) — sicuro da rieseguire.
+insert into user_territories (user_id, territory_id, role)
+select id, territory_id, role from users
+where territory_id is not null and role in ('coordinator','contributor','observer')
+on conflict (user_id, territory_id) do nothing;

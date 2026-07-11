@@ -9,7 +9,7 @@
 // ma la regola è scritta sull'intero insieme dei contributi della
 // combinazione (non su un singolo contributo) per restare corretta anche
 // se in futuro più co-referenti (R/A multipli) lavorano sullo stesso field.
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 async function handlePost(req, supabase, caller) {
   let body
@@ -59,8 +59,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
   if (caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
 
   try {

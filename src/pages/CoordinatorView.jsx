@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import { useContributions } from '../hooks/useContributions.js'
 import AggregatedView from '../components/AggregatedView.jsx'
 import PervasivityView from '../components/PervasivityView.jsx'
@@ -23,13 +24,14 @@ const TABS = [
 // visivo — v. audit navigazione del 2026-07-10.
 export default function CoordinatorView() {
   const { session, profile } = useAuth()
+  const { role } = useActiveTerritory()
   const { contributions, error, refetch } = useContributions()
   const [tab, setTab] = useState('aggregata')
 
   if (session === undefined || profile === undefined) return <p>Caricamento&hellip;</p>
   if (!session) return <p>Non autenticato. Usa il link ricevuto via email.</p>
   if (!profile) return <p>Utente autenticato ma nessun profilo associato. Contatta il coordinatore.</p>
-  if (profile.role !== 'coordinator') return <Navigate to="/form" replace />
+  if (role !== 'coordinator') return <Navigate to="/form" replace />
 
   return (
     <div className="coordinator-view">

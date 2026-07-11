@@ -18,3 +18,8 @@
 }
 .app-nav-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
 .app-nav-link.on { background: rgba(255, 255, 255, .16); color: #fff; font-weight: 600; }
+
+/* Azione "Cambia territorio" (multi-territorio, 2026-07-11): non è una
+   route, quindi è un <button>, non un <Link> — reset dei default browser e
+   spinta a destra nella nav, separata dai link di navigazione veri e propri. */
+.app-nav-action { margin-left: auto; border: none; background: none; cursor: pointer; }

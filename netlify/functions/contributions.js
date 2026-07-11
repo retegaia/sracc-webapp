@@ -19,7 +19,7 @@
 // non retrocede mai rispetto a quello già salvato (draft < submitted <
 // validated, v. maxStatus) — un referente che riapre e risalva un campo
 // già validated non lo riporta a submitted/draft.
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 const STATUS_RANK = { draft: 0, submitted: 1, validated: 2 }
 
@@ -134,8 +134,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
 
   try {
     if (req.method === 'GET') return await handleGet(req, supabase, caller)

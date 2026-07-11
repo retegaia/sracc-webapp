@@ -6,7 +6,7 @@
 // riusando lo stesso filtro già presente in handleGet di contributions.js,
 // non duplicato in un modulo condiviso perché è tre righe e l'unica altra
 // Function che lo usa non lo esporta.
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 import { buildCombos, buildGroups } from './_lib/exportData.js'
 import { generateWordBuffer } from './_lib/exportWord.js'
 import { generateExcelBuffer } from './_lib/exportExcel.js'
@@ -17,8 +17,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
 
   const url = new URL(req.url)
   const format = url.searchParams.get('format') === 'excel' ? 'excel' : 'word'

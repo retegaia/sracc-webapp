@@ -1,9 +1,21 @@
 import { supabase } from './supabaseClient.js'
+import { ACTIVE_TERRITORY_KEY } from './territoryStorage.js'
 
+// Header X-Territory-Id aggiunto qui, in un solo punto, invece che in ogni
+// chiamata: il territorio attivo scelto una volta per sessione (v.
+// useTerritorySelection.js) va su ogni richiesta autenticata. Se non è
+// ancora stato scelto (localStorage vuoto — caso di GET /api/my-territories
+// prima della scelta, o POST /api/territories che non ne richiede uno)
+// l'header è semplicemente assente: le Function che lo richiedono
+// rispondono 400 in modo esplicito (v. resolveCaller in
+// netlify/functions/_lib/auth.js), nessun default silenzioso.
 async function authHeaders() {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  const headers = token ? { Authorization: `Bearer ${token}` } : {}
+  const territoryId = localStorage.getItem(ACTIVE_TERRITORY_KEY)
+  if (territoryId) headers['X-Territory-Id'] = territoryId
+  return headers
 }
 
 export async function apiGet(path) {

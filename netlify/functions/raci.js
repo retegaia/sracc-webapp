@@ -7,7 +7,7 @@
 // role è null/assente, per restare sulla stessa coppia di verbi
 // GET/POST già usata da tutte le altre Function di questo repo (nessun
 // PATCH/DELETE altrove).
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 const ROLES = ['R', 'A', 'C', 'I']
 
@@ -37,9 +37,9 @@ async function handlePost(req, supabase, caller) {
   }
 
   const { data: targetUser, error: userErr } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', user_id)
+    .from('user_territories')
+    .select('user_id')
+    .eq('user_id', user_id)
     .eq('territory_id', caller.territory_id)
     .maybeSingle()
   if (userErr) return json({ error: userErr.message }, 500)
@@ -76,8 +76,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
   if (caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
 
   try {

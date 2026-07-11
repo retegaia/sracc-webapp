@@ -3,7 +3,7 @@
 // visibile al territorio del chiamante (usato da StepSelector per costruire
 // l'albero sistema→pericolo→field); con i tre filtri restituisce i fattori
 // di un field specifico (usato da FactorChips).
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 export default async (req) => {
   if (req.method !== 'GET') return json({ error: 'method not allowed' }, 405)
@@ -11,8 +11,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
 
   const url = new URL(req.url)
   const sistema = url.searchParams.get('sistema')

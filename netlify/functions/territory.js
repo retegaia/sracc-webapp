@@ -3,7 +3,7 @@
 // name e region: config (jsonb — pericoli/field attivi, metadati) resta
 // fuori scope in S8, nessun'altra parte dell'app lo legge oggi — deviazione
 // confermata con Andrea Vallebona il 2026-07-10. Solo coordinatore.
-import { json, getServiceClient, getCallerUser } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 async function handleGet(supabase, caller) {
   const { data, error } = await supabase
@@ -41,8 +41,9 @@ export default async (req) => {
   const supabase = getServiceClient()
   if (!supabase) return json({ error: 'server non configurato' }, 500)
 
-  const caller = await getCallerUser(supabase, req.headers.get('authorization'))
-  if (!caller) return json({ error: 'non autenticato' }, 401)
+  const result = await resolveCaller(supabase, req)
+  if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
   if (caller.role !== 'coordinator') return json({ error: 'non autorizzato' }, 403)
 
   try {
