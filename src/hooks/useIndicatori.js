@@ -1,0 +1,53 @@
+import { useEffect, useState } from 'react'
+import { apiGet } from '../lib/apiClient.js'
+
+// Libreria indicatori per un field specifico (S11, §10.4) — usato da
+// IndicatorSelector, stesso pattern di useFieldFactors in useFactors.js.
+export function useFieldIndicatori(sistema, pericolo, field) {
+  const [indicatori, setIndicatori] = useState(undefined)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!sistema || !pericolo || !field) {
+      setIndicatori(undefined)
+      return
+    }
+    let active = true
+    setIndicatori(undefined)
+    const params = new URLSearchParams({ sistema, pericolo, field })
+    apiGet(`indicatori?${params}`)
+      .then(({ indicatori }) => active && setIndicatori(indicatori))
+      .catch((err) => active && setError(err.message))
+    return () => {
+      active = false
+    }
+  }, [sistema, pericolo, field])
+
+  return { indicatori, error }
+}
+
+// Selezioni indicatori già salvate per sistema×pericolo (tutti i field di
+// quella tavola) — usato da IndicatorSelector per precompilare lo stato di
+// un field appena aperto senza una chiamata per ogni combinazione.
+export function useIndicatoriScelti(sistema, pericolo) {
+  const [indicatoriScelti, setIndicatoriScelti] = useState(undefined)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!sistema || !pericolo) {
+      setIndicatoriScelti(undefined)
+      return
+    }
+    let active = true
+    setIndicatoriScelti(undefined)
+    const params = new URLSearchParams({ sistema, pericolo })
+    apiGet(`indicatori-scelti?${params}`)
+      .then(({ indicatori_scelti }) => active && setIndicatoriScelti(indicatori_scelti))
+      .catch((err) => active && setError(err.message))
+    return () => {
+      active = false
+    }
+  }, [sistema, pericolo])
+
+  return { indicatoriScelti, error }
+}

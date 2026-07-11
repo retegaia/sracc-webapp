@@ -22,6 +22,10 @@
 .contributor-form button:active { opacity: .7; }
 .contributor-form .btn-primary { background: var(--gd); color: #fff; border-color: var(--gd); }
 .contributor-form .btn-outline { border-color: var(--gd); color: var(--gd); background: #fff; }
+.contributor-form a.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+  padding: 11px 18px; border-radius: 8px; min-height: 44px; text-decoration: none;
+}
 .contributor-form .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
 .contributor-form select, .contributor-form input[type=text], .contributor-form textarea {
   font-family: inherit; font-size: 14px; width: 100%;

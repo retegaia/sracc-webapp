@@ -1,0 +1,91 @@
+/* Stili di /indicatori (S11, §10.3-10.4) — chip di selezione + pesatura,
+   stesso linguaggio visivo di contributorForm.css (S3/S4) ma componente
+   dedicato e non condiviso: FactorChips/WeightingPanel hanno una forma dati
+   e un flusso (free-text + AI classify, solo Sensibilita/Capacita adattiva
+   pesate) troppo specifici del form referente per essere generalizzati
+   senza rischiare di destabilizzarlo. */
+.indicator-selector { max-width: 680px; margin: 0 auto; padding: 16px; }
+.indicator-selector :root,
+.indicator-selector {
+  --gd: #1E4D2B; --gm: #4A7C59; --ga: #C8860A;
+  --eb: #E6F1FB; --ef: #0C447C; --sb: #FCEBEB; --sf: #A32D2D; --cb: #EAF3DE; --cf: #3B6D11;
+  --pb: #FCF3E0; --pf: #8A5A00;
+  --gl: #EEF4F0; --brd: #E0E0E0; --bg: #fff; --bgs: #f7f7f5;
+}
+.indicator-selector .card {
+  background: var(--bg); border: 1px solid var(--brd); border-radius: 12px;
+  padding: 16px; margin-bottom: 14px;
+}
+.indicator-selector .ct {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: #666; margin-bottom: 12px;
+}
+.indicator-selector button {
+  font-family: inherit; font-size: 14px; padding: 11px 18px; border-radius: 8px;
+  border: 1px solid var(--brd); background: var(--bgs); color: #1a1a1a;
+  cursor: pointer; min-height: 44px; transition: opacity .15s;
+}
+.indicator-selector button:active { opacity: .7; }
+.indicator-selector button:disabled { opacity: .5; cursor: default; }
+.indicator-selector .btn-primary { background: var(--gd); color: #fff; border-color: var(--gd); }
+.indicator-selector .btn-outline { border-color: var(--gd); color: var(--gd); background: #fff; }
+.indicator-selector .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
+.indicator-selector .note-info {
+  background: var(--gl); border-left: 3px solid var(--gd); padding: 10px 12px;
+  border-radius: 0 8px 8px 0; font-size: 12px; color: var(--gd); margin-bottom: 10px;
+}
+.indicator-selector .empty { text-align: center; padding: 32px; color: #999; font-size: 14px; }
+
+.indicator-selector .group-toggle { display: flex; gap: 2px; margin-bottom: 14px; background: var(--bgs); border-radius: 8px; padding: 2px; }
+.indicator-selector .gt-btn {
+  flex: 1; font-size: 12px; font-weight: 500; padding: 8px; border: none; border-radius: 6px;
+  background: none; color: #666; min-height: 36px;
+}
+.indicator-selector .gt-btn.on { background: var(--bg); color: var(--gd); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.indicator-selector .group-title { font-size: 14px; font-weight: 600; color: var(--gd); padding: 12px 0 8px; border-bottom: 2px solid var(--gl); margin-bottom: 10px; }
+.indicator-selector .combo-row {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px; min-height: 52px;
+  background: var(--bgs); border: 1px solid var(--brd); border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+}
+.indicator-selector .combo-row .cn { flex: 1; font-size: 13px; font-weight: 500; }
+.indicator-selector .combo-row .cs { font-size: 11px; color: #999; }
+.indicator-selector .status-pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+.indicator-selector .status-pill.draft { background: #FAEEDA; color: #854F0B; }
+.indicator-selector .status-pill.submitted { background: var(--cb); color: var(--cf); }
+
+.indicator-selector .comp-hdr { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 8px; }
+.indicator-selector .comp-hdr.per { color: var(--pf); }
+.indicator-selector .comp-hdr.esp { color: var(--ef); }
+.indicator-selector .comp-hdr.sen { color: var(--sf); }
+.indicator-selector .comp-hdr.cap { color: var(--cf); }
+.indicator-selector .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.indicator-selector .chip {
+  display: inline-flex; align-items: center; font-size: 12px; padding: 8px 12px;
+  border-radius: 20px; border: 1px solid var(--brd); background: var(--bgs);
+  cursor: pointer; min-height: 38px; transition: all .15s; user-select: none; line-height: 1.3;
+}
+.indicator-selector .chip:active { transform: scale(.97); }
+.indicator-selector .chip.sel-per { background: var(--pb); border-color: var(--ga); color: var(--pf); }
+.indicator-selector .chip.sel-esp { background: var(--eb); border-color: #378ADD; color: var(--ef); }
+.indicator-selector .chip.sel-sen { background: var(--sb); border-color: #E24B4A; color: var(--sf); }
+.indicator-selector .chip.sel-cap { background: var(--cb); border-color: #639922; color: var(--cf); }
+
+.indicator-selector .w-block { margin-bottom: 14px; padding: 12px 0; border-bottom: 1px solid var(--brd); }
+.indicator-selector .w-block:last-child { border: none; }
+.indicator-selector .w-name { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+.indicator-selector .w-cards { display: flex; gap: 6px; }
+.indicator-selector .wc {
+  flex: 1; border: 2px solid var(--brd); border-radius: 10px; padding: 10px 6px;
+  text-align: center; cursor: pointer; min-height: 70px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; transition: all .15s;
+}
+.indicator-selector .wc:active { transform: scale(.97); }
+.indicator-selector .wc.sel-det { border-color: var(--gd); background: var(--gl); }
+.indicator-selector .wc.sel-rel { border-color: var(--gm); background: var(--gl); }
+.indicator-selector .wc.sel-mar { border-color: var(--brd); background: var(--bgs); }
+.indicator-selector .wc-n { font-size: 22px; font-weight: 500; }
+.indicator-selector .sel-det .wc-n { color: var(--gd); }
+.indicator-selector .sel-rel .wc-n { color: var(--gm); }
+.indicator-selector .sel-mar .wc-n { color: #999; }
+.indicator-selector .wc-l { font-size: 11px; font-weight: 500; }

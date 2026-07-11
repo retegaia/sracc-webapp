@@ -6,11 +6,13 @@ const COORDINATOR_LINKS = [
   ['/form', 'Form'],
   ['/coordinator', 'Vista Coordinatore'],
   ['/visualize/bowtie', 'Visualizzazioni'],
+  ['/indicatori', 'Indicatori'],
   ['/admin', 'Admin'],
 ]
 const CONTRIBUTOR_LINKS = [
   ['/form', 'Form'],
   ['/visualize/bowtie', 'Visualizzazioni'],
+  ['/indicatori', 'Indicatori'],
 ]
 
 // Nav bar persistente, montata da AppLayout sopra tutte le route

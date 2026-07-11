@@ -4,6 +4,7 @@ import StepSelector from '../components/StepSelector.jsx'
 import FactorChips from '../components/FactorChips.jsx'
 import WeightingPanel from '../components/WeightingPanel.jsx'
 import NotesExport from '../components/NotesExport.jsx'
+import IndicatorsBanner from '../components/IndicatorsBanner.jsx'
 import '../styles/contributorForm.css'
 
 const STEPS = [
@@ -47,6 +48,7 @@ export default function ContributorForm() {
 
   return (
     <div className="contributor-form">
+      {step === 1 && <IndicatorsBanner />}
       <div className="step-row">
         {STEPS.map(([n, label], i) => (
           <span key={n} style={{ display: 'contents' }}>

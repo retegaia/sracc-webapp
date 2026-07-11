@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import ContributorForm from './pages/ContributorForm.jsx'
 import CoordinatorView from './pages/CoordinatorView.jsx'
 import Visualization from './pages/Visualization.jsx'
+import IndicatorsPage from './pages/IndicatorsPage.jsx'
 import AdminPanel from './pages/AdminPanel.jsx'
 import AppLayout from './components/AppLayout.jsx'
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/form" element={<ContributorForm />} />
         <Route path="/coordinator" element={<CoordinatorView />} />
         <Route path="/visualize/:type" element={<Visualization />} />
+        <Route path="/indicatori" element={<IndicatorsPage />} />
         <Route path="/admin" element={<AdminPanel />} />
       </Route>
     </Routes>
