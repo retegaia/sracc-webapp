@@ -56,10 +56,15 @@ export function buildCombos(contributions, impattiAttesi) {
         c.esposizione.add(f.nome)
       } else if (f.componente === 'Sensibilita') {
         if (!c.sensibilita.has(f.nome)) c.sensibilita.set(f.nome, new Set())
-        if (f.peso) c.sensibilita.get(f.nome).add(f.peso)
+        // f.peso ?? null, non "if (f.peso)": un fattore con peso null va
+        // mostrato comunque (v. weightedLines), non scartato in silenzio —
+        // bug trovato in verifica l'11/07, cruciale per le 39 combinazioni
+        // migrate dalle catene d'impatto, che hanno fattori reali ma
+        // nessuna pesatura per design della migrazione.
+        c.sensibilita.get(f.nome).add(f.peso ?? null)
       } else if (f.componente === 'Capacita adattiva') {
         if (!c.capacitaAdattiva.has(f.nome)) c.capacitaAdattiva.set(f.nome, new Set())
-        if (f.peso) c.capacitaAdattiva.get(f.nome).add(f.peso)
+        c.capacitaAdattiva.get(f.nome).add(f.peso ?? null)
       }
     }
     if (contrib.vulnerability?.rischio) c.rischi.push(contrib.vulnerability.rischio)
@@ -71,13 +76,16 @@ export function buildCombos(contributions, impattiAttesi) {
 // Righe grezze (peso, nome) -> etichette leggibili "nome (peso)", una per
 // combinazione nome+peso distinta anche se più referenti hanno assegnato
 // pesi diversi allo stesso fattore — nessuna riconciliazione automatica,
-// mostra entrambe.
+// mostra entrambe. peso === null (fattore presente ma non ancora pesato,
+// v. buildCombos) diventa "nome (non pesato)" — deve restare distinguibile
+// da PLACEHOLDER ("Nessun contributo"), che si applica solo quando map è
+// vuota, cioè quando non esiste alcun fattore in quella componente.
 function weightedLines(map) {
   if (!map.size) return null
   const lines = []
   for (const [nome, pesi] of map) {
     if (!pesi.size) continue
-    for (const peso of [...pesi].sort()) lines.push(`${nome} (${peso})`)
+    for (const peso of [...pesi].sort()) lines.push(peso ? `${nome} (${peso})` : `${nome} (non pesato)`)
   }
   return lines.length ? lines.sort() : null
 }
