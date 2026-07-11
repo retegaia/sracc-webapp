@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import StepSelector from '../components/StepSelector.jsx'
 import FactorChips from '../components/FactorChips.jsx'
 import WeightingPanel from '../components/WeightingPanel.jsx'
 import NotesExport from '../components/NotesExport.jsx'
 import IndicatorsBanner from '../components/IndicatorsBanner.jsx'
+import { useOwnContribution } from '../hooks/useContributions.js'
 import '../styles/contributorForm.css'
 
 const STEPS = [
@@ -27,6 +28,22 @@ export default function ContributorForm() {
   const [selected, setSelected] = useState([])
   const [note, setNote] = useState('')
 
+  // Prefill (fix dell'11/07): quando sistema+pericolo+field sono tutti
+  // selezionati, carica un'eventuale contribution già esistente dell'utente
+  // per quella combinazione esatta. Non c'è un campo "vulnerability" da
+  // prefillare a parte — NotesExport lo ricalcola sempre da selected via
+  // computeVuln(selected) (v. WeightingPanel.jsx), quindi una volta
+  // ripopolati factors+peso il giudizio di vulnerabilità torna coerente da
+  // solo, nessun codice aggiuntivo necessario per quello specifico campo.
+  const { contribution: existingContribution } = useOwnContribution(sistema, pericolo, field)
+
+  useEffect(() => {
+    if (existingContribution) {
+      setSelected(existingContribution.factors)
+      setNote(existingContribution.note ?? '')
+    }
+  }, [existingContribution])
+
   function goToStep(n) {
     setParams((p) => {
       const next = new URLSearchParams(p)
@@ -43,7 +60,12 @@ export default function ContributorForm() {
       next.set('field', field)
       return next
     })
+    // Reset a vuoto prima di un eventuale prefill (v. useEffect sopra) — se
+    // la nuova combinazione non ha una contribution esistente, il form deve
+    // restare vuoto e non trascinarsi selected/note della combinazione
+    // precedente.
     setSelected([])
+    setNote('')
   }
 
   return (
@@ -60,6 +82,14 @@ export default function ContributorForm() {
           </span>
         ))}
       </div>
+
+      {existingContribution && step > 1 && (
+        <div className="note-info">
+          {existingContribution.status === 'validated'
+            ? 'Stai modificando un contributo già validato dal coordinatore — le modifiche restano validate.'
+            : 'Stai riprendendo un contributo già esistente per questa combinazione.'}
+        </div>
+      )}
 
       {step === 1 && (
         <StepSelector
