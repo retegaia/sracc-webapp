@@ -3,6 +3,7 @@
 // l'utente Supabase Auth, allinea la riga in `users`, poi innesca l'invio
 // del magic link tramite l'email integrata di Supabase Auth.
 import { createClient } from '@supabase/supabase-js'
+import { findAuthUserByEmail, sendMagicLink } from './_lib/authUsers.js'
 
 const supabaseUrl = process.env.SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_KEY
@@ -40,15 +41,8 @@ async function ensureAuthUser(supabase, email) {
   const alreadyExists = createErr.code === 'email_exists' || /already/i.test(createErr.message)
   if (!alreadyExists) throw createErr
 
-  let page = 1
-  for (;;) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 })
-    if (error) throw error
-    const found = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
-    if (found) return { id: found.id, isNew: false }
-    if (data.users.length < 200) break
-    page += 1
-  }
+  const found = await findAuthUserByEmail(supabase, email)
+  if (found) return { id: found.id, isNew: false }
   throw new Error(`Utente auth non trovato per email ${email} dopo creazione fallita.`)
 }
 
@@ -91,10 +85,7 @@ export default async (req) => {
     .upsert({ id: userId, territory_id, name, discipline, role: newRole }, { onConflict: 'id' })
   if (upsertErr) return json({ error: upsertErr.message }, 500)
 
-  const { error: otpErr } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false, emailRedirectTo: `${siteUrl}/login` },
-  })
+  const { error: otpErr } = await sendMagicLink(supabase, email, siteUrl)
   if (otpErr) return json({ error: otpErr.message }, 500)
 
   return json({ ok: true, user_id: userId, is_new: isNew })
