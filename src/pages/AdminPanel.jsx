@@ -7,12 +7,14 @@ import UserManager from '../components/UserManager.jsx'
 import RaciEditor from '../components/RaciEditor.jsx'
 import TerritoryConfig from '../components/TerritoryConfig.jsx'
 import CreateTerritory from '../components/CreateTerritory.jsx'
+import ResetScheda from '../components/ResetScheda.jsx'
 import '../styles/adminPanel.css'
 
 const TABS = [
   ['utenti', 'Utenti'],
   ['raci', 'RACI'],
   ['territorio', 'Territorio'],
+  ['reset', 'Resetta scheda'],
 ]
 
 // Route /admin (Tab.3, S8): "Solo Coordinator — gestione utenti, RACI,
@@ -52,6 +54,7 @@ export default function AdminPanel() {
             <CreateTerritory />
           </>
         )}
+        {tab === 'reset' && <ResetScheda users={users} />}
       </div>
     </div>
   )

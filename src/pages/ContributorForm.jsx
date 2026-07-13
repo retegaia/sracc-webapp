@@ -5,6 +5,8 @@ import FactorChips from '../components/FactorChips.jsx'
 import WeightingPanel from '../components/WeightingPanel.jsx'
 import NotesExport from '../components/NotesExport.jsx'
 import IndicatorsBanner from '../components/IndicatorsBanner.jsx'
+import ResetButton from '../components/ResetButton.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { useOwnContribution } from '../hooks/useContributions.js'
 import '../styles/contributorForm.css'
 
@@ -19,6 +21,7 @@ const STEPS = [
 // pericolo, field, passo) persistito in query string per resistere a un
 // refresh o essere condiviso (Tab.4, delta StepSelector).
 export default function ContributorForm() {
+  const { profile } = useAuth()
   const [params, setParams] = useSearchParams()
   const step = Number(params.get('step') || '1')
   const sistema = params.get('sistema') || ''
@@ -35,7 +38,7 @@ export default function ContributorForm() {
   // computeVuln(selected) (v. WeightingPanel.jsx), quindi una volta
   // ripopolati factors+peso il giudizio di vulnerabilità torna coerente da
   // solo, nessun codice aggiuntivo necessario per quello specifico campo.
-  const { contribution: existingContribution } = useOwnContribution(sistema, pericolo, field)
+  const { contribution: existingContribution, refetch: refetchContribution } = useOwnContribution(sistema, pericolo, field)
 
   useEffect(() => {
     if (existingContribution) {
@@ -84,10 +87,26 @@ export default function ContributorForm() {
       </div>
 
       {existingContribution && step > 1 && (
-        <div className="note-info">
-          {existingContribution.status === 'validated'
-            ? 'Stai modificando un contributo già validato dal coordinatore — le modifiche restano validate.'
-            : 'Stai riprendendo un contributo già esistente per questa combinazione.'}
+        <div className="note-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span>
+            {existingContribution.status === 'validated'
+              ? 'Stai modificando un contributo già validato dal coordinatore — le modifiche restano validate.'
+              : 'Stai riprendendo un contributo già esistente per questa combinazione.'}
+          </span>
+          {existingContribution.status !== 'validated' && (
+            <ResetButton
+              kind="contributions"
+              sistema={sistema}
+              pericolo={pericolo}
+              field={field}
+              user_id={profile.id}
+              onReset={() => {
+                setSelected([])
+                setNote('')
+                refetchContribution()
+              }}
+            />
+          )}
         </div>
       )}
 

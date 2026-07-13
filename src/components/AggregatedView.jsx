@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { apiPost } from '../lib/apiClient.js'
+import ResetButton from './ResetButton.jsx'
 
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
 const CSS_KEY = { Esposizione: 'esp', Sensibilita: 'sen', 'Capacita adattiva': 'cap' }
@@ -109,13 +110,24 @@ export default function AggregatedView({ contributions, onValidated }) {
                   <div className="fbody open">
                     {conts.map((c, i) => (
                       <div className="rblock" key={c.id} style={i > 0 ? { borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: -1 } : undefined}>
-                        <div className="rname">
-                          👤 {c.users?.name ?? 'Referente sconosciuto'} — {c.users?.discipline ?? '—'}
-                          {c.vulnerability && (
-                            <span className={`rbadge rb-${c.vulnerability.rischio}`} style={{ marginLeft: 6 }}>
-                              {c.vulnerability.rischio}
-                            </span>
-                          )}
+                        <div className="rname" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                          <span>
+                            👤 {c.users?.name ?? 'Referente sconosciuto'} — {c.users?.discipline ?? '—'}
+                            {c.vulnerability && (
+                              <span className={`rbadge rb-${c.vulnerability.rischio}`} style={{ marginLeft: 6 }}>
+                                {c.vulnerability.rischio}
+                              </span>
+                            )}
+                          </span>
+                          <ResetButton
+                            kind="contributions"
+                            sistema={t.sistema}
+                            pericolo={t.pericolo}
+                            field={field}
+                            user_id={c.user_id}
+                            label="Resetta"
+                            onReset={() => onValidated?.()}
+                          />
                         </div>
                         {c.factors.map((f, fi) => (
                           <div className="fr" key={fi}>

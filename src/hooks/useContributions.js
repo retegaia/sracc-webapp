@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiGet } from '../lib/apiClient.js'
 import { useAuth } from './useAuth.js'
 
@@ -35,29 +35,40 @@ export function useContributions() {
 // territorio su quel field — isoliamo comunque la riga di user_id ===
 // profile.id, stesso pattern già usato in IndicatorSelector.jsx per
 // ownExisting/GET /api/indicatori-scelti.
+// refetch (aggiunto per il reset scheda) usa un contatore di "epoca" invece
+// del flag active+cleanup della versione precedente: un useEffect non può
+// invalidare una richiesta lanciata da una chiamata manuale a refetch() (e
+// viceversa), quindi entrambi i percorsi devono condividere lo stesso
+// meccanismo di invalidazione per restare protetti da risposte fuori
+// ordine (field cambiato due volte di fretta, o refetch chiamato mentre un
+// fetch dell'effect è ancora in volo).
 export function useOwnContribution(sistema, pericolo, field) {
   const { profile } = useAuth()
   const [contribution, setContribution] = useState(undefined) // undefined=loading, null=nessuna, altrimenti la riga
   const [error, setError] = useState(null)
+  const epochRef = useRef(0)
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    const epoch = ++epochRef.current
     if (!sistema || !pericolo || !field || !profile) {
       setContribution(undefined)
       return
     }
-    let active = true
     setContribution(undefined)
     const params = new URLSearchParams({ sistema, pericolo, field })
     apiGet(`contributions?${params}`)
       .then(({ contributions }) => {
-        if (!active) return
+        if (epochRef.current !== epoch) return
         setContribution(contributions.find((c) => c.user_id === profile.id) ?? null)
       })
-      .catch((err) => active && setError(err.message))
-    return () => {
-      active = false
-    }
+      .catch((err) => {
+        if (epochRef.current === epoch) setError(err.message)
+      })
   }, [sistema, pericolo, field, profile])
 
-  return { contribution, error }
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { contribution, error, refetch: load }
 }

@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useContributions } from '../hooks/useContributions.js'
 import { useFieldIndicatori, useIndicatoriScelti } from '../hooks/useIndicatori.js'
 import { apiPost } from '../lib/apiClient.js'
+import ResetButton from './ResetButton.jsx'
 import '../styles/indicatorSelector.css'
 
 const COMPONENTI = ['Pericolo', 'Esposizione', 'Sensibilita', 'Capacita adattiva']
@@ -53,7 +54,7 @@ export default function IndicatorSelector() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const { indicatori: library, error: libError } = useFieldIndicatori(active?.sistema, active?.pericolo, active?.field)
-  const { indicatoriScelti, error: sceltiError } = useIndicatoriScelti(active?.sistema, active?.pericolo)
+  const { indicatoriScelti, error: sceltiError, refetch: refetchScelti } = useIndicatoriScelti(active?.sistema, active?.pericolo)
 
   // Nota (istruzione esplicita): anche il coordinator scrive su
   // indicatori-scelti solo se assegnato via RACI (stesso controllo di
@@ -135,7 +136,23 @@ export default function IndicatorSelector() {
     return (
       <div className="indicator-selector">
         <div className="card">
-          <div className="ct">{active.field}</div>
+          <div className="ct" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span>{active.field}</span>
+            {ownExisting && (
+              <ResetButton
+                kind="indicatori-scelti"
+                sistema={active.sistema}
+                pericolo={active.pericolo}
+                field={active.field}
+                user_id={profile.id}
+                label="Resetta questa selezione"
+                onReset={() => {
+                  setSelected([])
+                  refetchScelti()
+                }}
+              />
+            )}
+          </div>
           <div style={{ fontSize: 12, color: '#666', marginBottom: ownExisting ? 8 : 0 }}>
             {active.sistema} × {active.pericolo}
           </div>

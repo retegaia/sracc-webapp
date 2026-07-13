@@ -27,6 +27,19 @@
   to = "/.netlify/functions/contributions-validate"
   status = 200
 
+# Stesso motivo delle regole sopra: /api/contributions/reset e
+# /api/indicatori-scelti/reset hanno un segmento in più rispetto al nome
+# flat delle rispettive Function.
+[[redirects]]
+  from = "/api/contributions/reset"
+  to = "/.netlify/functions/contributions-reset"
+  status = 200
+
+[[redirects]]
+  from = "/api/indicatori-scelti/reset"
+  to = "/.netlify/functions/indicatori-scelti-reset"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

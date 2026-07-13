@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiGet } from '../lib/apiClient.js'
 
 // Libreria indicatori per un field specifico (S11, §10.4) — usato da
@@ -29,25 +29,35 @@ export function useFieldIndicatori(sistema, pericolo, field) {
 // Selezioni indicatori già salvate per sistema×pericolo (tutti i field di
 // quella tavola) — usato da IndicatorSelector per precompilare lo stato di
 // un field appena aperto senza una chiamata per ogni combinazione.
+// refetch (aggiunto per il reset scheda, stesso motivo/meccanismo di
+// useOwnContribution in useContributions.js) usa un contatore di "epoca"
+// per restare protetto da risposte fuori ordine tra l'effect e le chiamate
+// manuali.
 export function useIndicatoriScelti(sistema, pericolo) {
   const [indicatoriScelti, setIndicatoriScelti] = useState(undefined)
   const [error, setError] = useState(null)
+  const epochRef = useRef(0)
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    const epoch = ++epochRef.current
     if (!sistema || !pericolo) {
       setIndicatoriScelti(undefined)
       return
     }
-    let active = true
     setIndicatoriScelti(undefined)
     const params = new URLSearchParams({ sistema, pericolo })
     apiGet(`indicatori-scelti?${params}`)
-      .then(({ indicatori_scelti }) => active && setIndicatoriScelti(indicatori_scelti))
-      .catch((err) => active && setError(err.message))
-    return () => {
-      active = false
-    }
+      .then(({ indicatori_scelti }) => {
+        if (epochRef.current === epoch) setIndicatoriScelti(indicatori_scelti)
+      })
+      .catch((err) => {
+        if (epochRef.current === epoch) setError(err.message)
+      })
   }, [sistema, pericolo])
 
-  return { indicatoriScelti, error }
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { indicatoriScelti, error, refetch: load }
 }
