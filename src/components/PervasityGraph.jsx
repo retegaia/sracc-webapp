@@ -65,6 +65,26 @@ function arcPositions(ids, baseDeg, spreadDeg, cx, cy, arcR) {
 
 const SISTEMA_COLORS = ['#534AB7', '#BA7517', '#0F6E56', '#A32D2D', '#2D7D7F']
 
+// Opacità di un nodo dati i due filtri correnti (sistema, field) — funzione
+// pura, condivisa tra il pointerout handler (chiuso nell'effect D3, deve
+// leggere i filtri da ref) e l'effect dedicato ai filtri (legge dallo
+// state direttamente). Il filtro sistema non oscura mai un nodo fattore
+// (comportamento esistente, invariato: un fattore può attraversare più
+// sistemi, oscurarlo per sistema lo nasconderebbe anche dove è pervasivo).
+// Il filtro field invece isola per davvero — un fattore non collegato al
+// field selezionato viene oscurato, altrimenti il filtro field non
+// isolerebbe nulla (la maggioranza dei nodi fattore resterebbe comunque a
+// piena opacità).
+function nodeOpacity(d, sistemaF, fieldF) {
+  if (d.type === 'field') {
+    const sistemaOk = sistemaF === 'all' || d.sistema === sistemaF
+    const fieldOk = fieldF === 'all' || d.nome === fieldF
+    return sistemaOk && fieldOk ? 1 : 0.12
+  }
+  const fieldOk = fieldF === 'all' || d.fields.has(fieldF)
+  return fieldOk ? 1 : 0.12
+}
+
 // Grafo pervasività (Tab.4, S7): porta 1:1 lo stile visivo e le interazioni
 // del prototipo docs/SRACC_Visualizzazioni.html (D3 force simulation, drag,
 // tooltip on hover, filtro per sistema) — struttura bipartita
@@ -74,29 +94,60 @@ export default function PervasityGraph({ contributions }) {
   const svgRef = useRef(null)
   const tooltipRef = useRef(null)
   const simRef = useRef(null)
-  const [filter, setFilter] = useState('all')
-  // L'handler pointerout (dentro l'effect D3 sotto, che monta una sola volta
-  // per dataset) deve leggere il filtro corrente, non quello catturato al
-  // mount: senza il ref il filtro selezionato si "dimenticava" dopo il primo
-  // hover, tornando a mostrare tutti i nodi a piena opacità.
-  const filterRef = useRef(filter)
-  filterRef.current = filter
+  const [sistemaFilter, setSistemaFilter] = useState('all')
+  const [fieldFilter, setFieldFilter] = useState('all')
+  // Di default il grafo mostra solo i fattori pervasivi (collegati a 2+
+  // field distinti) — un fattore legato a un solo field non è pervasivo,
+  // è rumore visivo qui (ha già la sua rappresentazione nel bow-tie di
+  // quel field). L'interruttore riporta alla vista completa.
+  const [showAllFactors, setShowAllFactors] = useState(false)
+  // Gli handler dentro l'effect D3 sotto (che monta una sola volta per
+  // dataset) devono leggere i filtri correnti, non quelli catturati al
+  // mount: senza i ref i filtri selezionati si "dimenticavano" dopo il
+  // primo hover, tornando a mostrare tutti i nodi a piena opacità — bug
+  // già corretto in S7 per il filtro sistema, stesso pattern qui per field.
+  const sistemaFilterRef = useRef(sistemaFilter)
+  sistemaFilterRef.current = sistemaFilter
+  const fieldFilterRef = useRef(fieldFilter)
+  fieldFilterRef.current = fieldFilter
 
   const { nodes: rawNodes, links: rawLinks, sistemi } = useMemo(() => buildGraph(contributions), [contributions])
+  const fieldNames = useMemo(
+    () => [...new Set(rawNodes.filter((n) => n.type === 'field').map((n) => n.nome))].sort(),
+    [rawNodes]
+  )
   const sistemaColor = useMemo(() => {
     const m = new Map()
     sistemi.forEach((s, i) => m.set(s, SISTEMA_COLORS[i % SISTEMA_COLORS.length]))
     return m
   }, [sistemi])
 
+  // Esclusione vera (non solo dimming) dei fattori non pervasivi quando
+  // showAllFactors è false — tolti da nodi E archi passati alla
+  // simulazione, non solo resi trasparenti, altrimenti continuerebbero a
+  // occupare spazio ed esercitare le forze di repulsione. I nodi field non
+  // vengono mai esclusi (sono gli ancoraggi della vista). Nessuna nuova
+  // query: il conteggio dei field collegati (fields.size) è già calcolato
+  // in buildGraph sugli archi esistenti.
+  const { visibleNodes, visibleLinks } = useMemo(() => {
+    if (showAllFactors) return { visibleNodes: rawNodes, visibleLinks: rawLinks }
+    const excludedFactorIds = new Set(
+      rawNodes.filter((n) => n.type === 'factor' && n.fields.size < 2).map((n) => n.id)
+    )
+    return {
+      visibleNodes: rawNodes.filter((n) => n.type !== 'factor' || !excludedFactorIds.has(n.id)),
+      visibleLinks: rawLinks.filter((l) => !excludedFactorIds.has(l.source)),
+    }
+  }, [rawNodes, rawLinks, showAllFactors])
+
   useEffect(() => {
     const svgEl = svgRef.current
     const tooltipEl = tooltipRef.current
-    if (!svgEl || !rawNodes.length) return
+    if (!svgEl || !visibleNodes.length) return
 
     // Copie mutabili per la simulation (d3 vi scrive x/y/vx/vy/index)
-    const nodes = rawNodes.map((n) => ({ ...n }))
-    const links = rawLinks.map((l) => ({ ...l }))
+    const nodes = visibleNodes.map((n) => ({ ...n }))
+    const links = visibleLinks.map((l) => ({ ...l }))
 
     const cx = W / 2
     const cy = H / 2
@@ -188,6 +239,14 @@ export default function PervasityGraph({ contributions }) {
       .attr('stroke-width', 1.5)
       .attr('stroke-dasharray', (d) => (d.type === 'factor' && d.strato === 'IN' ? '4,3' : null))
 
+    // Applica subito il filtro sistema/field corrente — questo effect si
+    // rimonta anche per un toggle di "Mostra tutti i fattori" (cambia
+    // visibleNodes/visibleLinks), non solo per un nuovo dataset: senza
+    // questo, i nuovi nodi nascerebbero tutti a piena opacità e un filtro
+    // già attivo sembrerebbe "dimenticato" finché l'utente non tocca di
+    // nuovo un bottone filtro o passa il mouse su un nodo.
+    node.attr('opacity', (d) => nodeOpacity(d, sistemaFilterRef.current, fieldFilterRef.current))
+
     node
       .filter((d) => d.type === 'field')
       .append('text')
@@ -235,8 +294,7 @@ export default function PervasityGraph({ contributions }) {
     })
     node.on('pointerout', () => {
       tooltipEl.style.display = 'none'
-      const f = filterRef.current
-      node.attr('opacity', (d) => (f === 'all' || d.type === 'factor' || d.sistema === f ? 1 : 0.12))
+      node.attr('opacity', (d) => nodeOpacity(d, sistemaFilterRef.current, fieldFilterRef.current))
       link.attr('stroke-opacity', 0.35).attr('stroke-width', (d) => wSc(d.weight))
     })
 
@@ -259,14 +317,14 @@ export default function PervasityGraph({ contributions }) {
       simRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawNodes, rawLinks, sistemi, sistemaColor])
+  }, [visibleNodes, visibleLinks, sistemi, sistemaColor])
 
   useEffect(() => {
     if (!svgRef.current) return
     d3.select(svgRef.current)
       .selectAll('g g')
-      .attr('opacity', (d) => (!d ? 1 : filter === 'all' || d.type === 'factor' || d.sistema === filter ? 1 : 0.12))
-  }, [filter])
+      .attr('opacity', (d) => (!d ? 1 : nodeOpacity(d, sistemaFilter, fieldFilter)))
+  }, [sistemaFilter, fieldFilter])
 
   if (!contributions.length) {
     return <div className="empty">Nessun contributo disponibile per questo territorio.</div>
@@ -276,14 +334,29 @@ export default function PervasityGraph({ contributions }) {
     <div className="card">
       <div className="ct">Fattori × Impact field — pervasività</div>
       <div className="g-filters">
-        <button className={`g-fbtn${filter === 'all' ? ' on' : ''}`} onClick={() => setFilter('all')}>
-          Tutti
+        <button className={`g-fbtn${sistemaFilter === 'all' ? ' on' : ''}`} onClick={() => setSistemaFilter('all')}>
+          Tutti i sistemi
         </button>
         {sistemi.map((s) => (
-          <button key={s} className={`g-fbtn${filter === s ? ' on' : ''}`} onClick={() => setFilter(s)}>
+          <button key={s} className={`g-fbtn${sistemaFilter === s ? ' on' : ''}`} onClick={() => setSistemaFilter(s)}>
             {s.split(' ')[0]}
           </button>
         ))}
+      </div>
+      <div className="g-filters">
+        <button className={`g-fbtn${fieldFilter === 'all' ? ' on' : ''}`} onClick={() => setFieldFilter('all')}>
+          Tutti i field
+        </button>
+        {fieldNames.map((f) => (
+          <button key={f} className={`g-fbtn${fieldFilter === f ? ' on' : ''}`} onClick={() => setFieldFilter(f)}>
+            {f}
+          </button>
+        ))}
+      </div>
+      <div className="g-filters">
+        <button className={`g-fbtn${showAllFactors ? ' on' : ''}`} onClick={() => setShowAllFactors((v) => !v)}>
+          {showAllFactors ? 'Mostra solo fattori pervasivi (2+ field)' : 'Mostra tutti i fattori'}
+        </button>
       </div>
       <svg ref={svgRef} id="graphsvg" height="400" viewBox={`0 0 ${W} ${H}`} />
       <div className="g-tooltip" ref={tooltipRef} />
