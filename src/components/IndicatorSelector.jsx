@@ -76,9 +76,21 @@ export default function IndicatorSelector() {
     return indicatoriScelti.find((r) => r.user_id === profile.id && r.field === active.field)
   }, [indicatoriScelti, active, profile])
 
+  // Nessuna riga propria salvata per la combinazione: precompila dalla
+  // libreria disciplinare (già scelta a monte in S10) invece di partire
+  // vuoti — il referente parte da "tutto selezionato, da pesare" e toglie
+  // solo ciò che non ritiene pertinente. Aspetta che entrambe le fetch
+  // siano risolte per non sovrascrivere una riga salvata con il default
+  // mentre indicatoriScelti sta ancora caricando.
   useEffect(() => {
-    if (ownExisting) setSelected(ownExisting.indicatori)
-  }, [ownExisting])
+    if (!active || indicatoriScelti === undefined) return
+    if (ownExisting) {
+      setSelected(ownExisting.indicatori)
+      return
+    }
+    if (library === undefined) return
+    setSelected(library.map((ind) => ({ indicatore_id: ind.id, nome: ind.nome, componente: ind.componente, peso: null })))
+  }, [active, indicatoriScelti, ownExisting, library])
 
   function openCombo(combo) {
     setActive(combo)
