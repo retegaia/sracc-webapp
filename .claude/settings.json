@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof:*)",
+      "Bash(ps aux:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx netlify dev:*)",
+      "Bash(curl -s https://sracc-webapp.netlify.app*)"
+    ]
+  }
+}
