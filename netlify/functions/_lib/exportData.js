@@ -49,6 +49,12 @@ export function buildCombos(contributions, impattiAttesi) {
   }
 
   for (const contrib of contributions) {
+    // Riga senza fattori (bozza mai iniziata, o scheda resettata, v.
+    // contributions-reset.js) — ignorata: non deve contare come
+    // hasContribution, altrimenti il render sopprime lo stile
+    // LIBRARY_ONLY e mostra la riga come "compilata ma vuota" invece che
+    // come previsione di sola libreria (stesso criterio di BowTie.jsx).
+    if (!contrib.factors?.length) continue
     const c = ensure(contrib.sistema, contrib.pericolo, contrib.field)
     c.contributionCount += 1
     for (const f of contrib.factors || []) {

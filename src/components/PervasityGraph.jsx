@@ -20,6 +20,11 @@ function buildGraph(contributions) {
   const edges = new Map() // key: `${factorKey}|||${fieldKey}` -> peso
 
   for (const c of contributions) {
+    // Riga senza fattori (bozza mai iniziata, o scheda resettata) — ignorata
+    // per non lasciare un nodo field isolato senza archi (v. BowTie.jsx).
+    // Se un altro contributo reale tocca lo stesso field, il nodo viene
+    // comunque creato da quella riga.
+    if (!c.factors?.length) continue
     if (!fields.has(c.field)) fields.set(c.field, { id: c.field, nome: c.field, sistema: c.sistema, factors: new Set() })
     const fieldNode = fields.get(c.field)
     for (const f of c.factors) {

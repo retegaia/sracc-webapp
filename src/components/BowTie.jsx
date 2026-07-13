@@ -15,9 +15,16 @@ function optionLabel(c) {
 // contributions non ha un campo corrispondente (solo factors, vulnerability,
 // note, status) — deviazione confermata con Andrea Vallebona il 2026-07-10.
 export default function BowTie({ contributions, sistema, pericolo, field }) {
+  // Righe senza alcun fattore (factors: []) — bozza mai davvero iniziata, o
+  // scheda appena resettata (v. ResetButton) — non rappresentano un
+  // contributo reale: escluse a prescindere dallo status (una bozza con
+  // contenuto vero resta visibile, solo l'assenza totale di fattori la fa
+  // ignorare). Stesso criterio applicato in HeatMap, PervasityGraph ed
+  // exportData.js.
   const filtered = useMemo(() => {
-    if (!sistema || !pericolo || !field) return contributions
-    return contributions.filter((c) => c.sistema === sistema && c.pericolo === pericolo && c.field === field)
+    const withFactors = contributions.filter((c) => c.factors?.length > 0)
+    if (!sistema || !pericolo || !field) return withFactors
+    return withFactors.filter((c) => c.sistema === sistema && c.pericolo === pericolo && c.field === field)
   }, [contributions, sistema, pericolo, field])
 
   const [selectedId, setSelectedId] = useState('')

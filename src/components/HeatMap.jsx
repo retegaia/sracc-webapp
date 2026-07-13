@@ -29,6 +29,9 @@ export default function HeatMap({ contributions }) {
   const cellData = useMemo(() => {
     const m = new Map()
     for (const c of contributions) {
+      // Riga senza fattori (bozza mai iniziata, o scheda resettata) — non un
+      // contributo reale, ignorata a prescindere dallo status (v. BowTie.jsx).
+      if (!c.factors?.length) continue
       const k = `${c.sistema}|||${c.pericolo}`
       if (!m.has(k)) m.set(k, [])
       m.get(k).push({
