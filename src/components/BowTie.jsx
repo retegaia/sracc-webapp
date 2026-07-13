@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { sistemaShortLabel } from '../lib/sistemaLabels.js'
 
 const FW_CLASS = { Determinante: 'fw-det', Rilevante: 'fw-rel', Marginale: 'fw-mar' }
 const FW_NUM = { Determinante: 3, Rilevante: 2, Marginale: 1 }
 
 function optionLabel(c) {
-  return `${c.users?.name ?? 'Referente sconosciuto'} — ${c.sistema.split(' ')[0]} × ${c.pericolo.split(',')[0]} × ${c.field}`
+  return `${c.users?.name ?? 'Referente sconosciuto'} — ${sistemaShortLabel(c.sistema)} × ${c.pericolo.split(',')[0]} × ${c.field}`
 }
 
 // Visualizzazione bow-tie (Tab.4, S6): porta 1:1 il layout div/flexbox del

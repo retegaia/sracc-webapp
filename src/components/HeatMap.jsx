@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useFactorTaxonomy } from '../hooks/useFactors.js'
+import { sistemaShortLabel } from '../lib/sistemaLabels.js'
 
 const ICONS = {
   Siccità: '☀',
@@ -76,7 +77,7 @@ export default function HeatMap({ contributions }) {
           <tbody>
             {sistemi.map((sis) => (
               <tr key={sis}>
-                <td className="row-hdr">{sis.split(' ')[0]}</td>
+                <td className="row-hdr">{sistemaShortLabel(sis)}</td>
                 {pericoli.map((per) => {
                   if (!tree[sis][per]) return <td key={per} />
                   const items = cellData.get(`${sis}|||${per}`)
@@ -114,7 +115,7 @@ export default function HeatMap({ contributions }) {
         {detail && (
           <>
             <div className="det-title">
-              {detail.sistema.split(' ')[0]} × {detail.pericolo}
+              {sistemaShortLabel(detail.sistema)} × {detail.pericolo}
             </div>
             {(cellData.get(`${detail.sistema}|||${detail.pericolo}`) || []).map((x, i) => (
               <div className="frow" key={i}>
