@@ -1,18 +1,7 @@
 import { useState } from 'react'
 import { apiPost } from '../lib/apiClient.js'
 import { computeVuln } from './WeightingPanel.jsx'
-
-function buildPayload({ sistema, pericolo, field, selected, note, status }) {
-  return {
-    sistema,
-    pericolo,
-    field,
-    factors: selected,
-    vulnerability: computeVuln(selected),
-    note,
-    status,
-  }
-}
+import { buildContributionPayload } from '../lib/contributionPayload.js'
 
 function downloadJSON(payload) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
@@ -48,7 +37,7 @@ export default function NotesExport({ sistema, pericolo, field, selected, note, 
     setStatus('saving')
     setErrorMsg('')
     try {
-      await apiPost('contributions', buildPayload({ sistema, pericolo, field, selected, note, status: 'submitted' }))
+      await apiPost('contributions', buildContributionPayload({ sistema, pericolo, field, selected, note, status: 'submitted' }))
       setStatus('saved')
     } catch (err) {
       setStatus('error')
@@ -57,7 +46,7 @@ export default function NotesExport({ sistema, pericolo, field, selected, note, 
   }
 
   function fallbackDownload() {
-    downloadJSON(buildPayload({ sistema, pericolo, field, selected, note, status: 'submitted' }))
+    downloadJSON(buildContributionPayload({ sistema, pericolo, field, selected, note, status: 'submitted' }))
   }
 
   return (

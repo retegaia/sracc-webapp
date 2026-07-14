@@ -8,6 +8,8 @@ import IndicatorsBanner from '../components/IndicatorsBanner.jsx'
 import ResetButton from '../components/ResetButton.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { useOwnContribution } from '../hooks/useContributions.js'
+import { apiPost } from '../lib/apiClient.js'
+import { buildContributionPayload } from '../lib/contributionPayload.js'
 import '../styles/contributorForm.css'
 
 const STEPS = [
@@ -30,6 +32,7 @@ export default function ContributorForm() {
 
   const [selected, setSelected] = useState([])
   const [note, setNote] = useState('')
+  const [draftSaveError, setDraftSaveError] = useState('')
 
   // Prefill (fix dell'11/07): quando sistema+pericolo+field sono tutti
   // selezionati, carica un'eventuale contribution già esistente dell'utente
@@ -53,6 +56,25 @@ export default function ContributorForm() {
       next.set('step', String(n))
       return next
     })
+  }
+
+  // Salvataggio bozza (status 'draft') agli avanzamenti di step 2→3 e 3→4:
+  // fattori e pesatura, prima di questo fix, vivevano solo in stato locale
+  // (v. FactorChips.jsx e WeightingPanel.jsx) e andavano persi se il
+  // referente chiudeva la scheda prima di "Invia contributo" allo step 4.
+  // Non blocca la navigazione (chiamata senza await dal caller) — l'utente
+  // prosegue subito, un eventuale fallimento è segnalato dal banner sotto
+  // senza interrompere il flusso. Il backend (contributions.js) applica già
+  // la non-regressione dello status, quindi un draft non retrocede mai un
+  // contributo già submitted/validated.
+  async function saveDraft() {
+    if (!selected.length) return
+    try {
+      await apiPost('contributions', buildContributionPayload({ sistema, pericolo, field, selected, note, status: 'draft' }))
+      setDraftSaveError('')
+    } catch (err) {
+      setDraftSaveError(err.message)
+    }
   }
 
   function setContext({ sistema, pericolo, field }) {
@@ -85,6 +107,12 @@ export default function ContributorForm() {
           </span>
         ))}
       </div>
+
+      {draftSaveError && (
+        <div className="note-info" style={{ color: 'var(--sf)' }}>
+          Bozza non salvata sul server: {draftSaveError} — i dati restano su questa pagina, riprova ad avanzare di step.
+        </div>
+      )}
 
       {existingContribution && step > 1 && (
         <div className="note-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -127,7 +155,10 @@ export default function ContributorForm() {
           selected={selected}
           onSelectedChange={setSelected}
           onBack={() => goToStep(1)}
-          onNext={() => goToStep(3)}
+          onNext={() => {
+            saveDraft()
+            goToStep(3)
+          }}
         />
       )}
       {step === 3 && (
@@ -135,7 +166,10 @@ export default function ContributorForm() {
           selected={selected}
           onSelectedChange={setSelected}
           onBack={() => goToStep(2)}
-          onNext={() => goToStep(4)}
+          onNext={() => {
+            saveDraft()
+            goToStep(4)
+          }}
         />
       )}
       {step === 4 && (
