@@ -3,7 +3,14 @@ import { useAuth } from '../hooks/useAuth.js'
 import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import '../styles/appNav.css'
 
+// "Home" riporta alla landing (Dashboard.jsx, 2026-07-15) — stessa voce
+// per tutti e tre i ruoli, in testa a ogni lista. Non forza una nuova
+// scelta del territorio: AppNav è montato solo quando AppLayout è già
+// nello stato 'ready' (territorio attivo risolto), quindi cliccare Home
+// naviga semplicemente a "/" con lo stesso territorio già attivo.
+const HOME_LINK = ['/', 'Home']
 const COORDINATOR_LINKS = [
+  HOME_LINK,
   ['/form', 'Form'],
   ['/coordinator', 'Vista Coordinatore'],
   ['/visualize/bowtie', 'Visualizzazioni'],
@@ -11,6 +18,7 @@ const COORDINATOR_LINKS = [
   ['/admin', 'Admin'],
 ]
 const CONTRIBUTOR_LINKS = [
+  HOME_LINK,
   ['/form', 'Form'],
   ['/visualize/bowtie', 'Visualizzazioni'],
   ['/indicatori', 'Indicatori'],
@@ -20,6 +28,7 @@ const CONTRIBUTOR_LINKS = [
 // redirect già applicato server-side in ContributorForm.jsx, qui si evita
 // solo di mostrare il link a chi non dovrebbe cliccarci.
 const OBSERVER_LINKS = [
+  HOME_LINK,
   ['/visualize/bowtie', 'Visualizzazioni'],
   ['/indicatori', 'Indicatori'],
 ]
