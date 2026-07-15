@@ -96,10 +96,10 @@ export default function HeatMap({ contributions }) {
                       onClick={() => setDetail({ sistema: sis, pericolo: per })}
                     >
                       <span className={`rl-${mr}`}>{mr || '—'}</span>
-                      <div style={{ marginTop: 4 }}>
+                      <div className="fchip-list">
                         {[...new Set(items.map((x) => x.field))].map((f) => (
-                          <span key={f} className={`fchip ${mr === 'Alto' ? 'a' : mr === 'Medio' ? 'm' : 'b'}`}>
-                            {f.split(' ')[0]}&hellip;
+                          <span key={f} className={`fchip ${mr === 'Alto' ? 'a' : mr === 'Medio' ? 'm' : 'b'}`} title={f}>
+                            {f}
                           </span>
                         ))}
                       </div>
