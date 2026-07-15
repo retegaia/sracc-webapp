@@ -78,7 +78,7 @@ function rischioCell(view, width) {
 
 export async function generateWordBuffer(groups) {
   const children = [
-    new Paragraph({ text: "Catene d'impatto climatico — export SRACC Barigadu Guilcer", heading: HeadingLevel.HEADING_1 }),
+    new Paragraph({ text: "Catene d'impatto climatico — export RADAPT Barigadu Guilcer", heading: HeadingLevel.HEADING_1 }),
     new Paragraph({
       children: [new TextRun({ text: `Generato il ${new Date().toLocaleDateString('it-IT')}`, italics: true, size: 18 })],
       spacing: { after: 200 },

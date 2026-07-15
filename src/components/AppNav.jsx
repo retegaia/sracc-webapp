@@ -45,17 +45,30 @@ const OBSERVER_LINKS = [
 // il ruolo non è quello giusto) — si limita a non proporre il link a chi
 // non dovrebbe cliccarci; chi ci arriva comunque via URL diretto viene
 // comunque rimandato indietro dal redirect di guardia del componente.
+//
+// Etichetta "RADAPT · [territorio]" (rename SRACC→RADAPT, 2026-07-15):
+// nuovo elemento, non esisteva prima di questo prompt — aggiunto qui
+// perché è la sede naturale per il brand dell'app (sempre visibile,
+// aggiornata automaticamente al territorio attivo), non perché stesse
+// sostituendo un testo preesistente. Solo il nome, mai il sottotitolo/
+// tagline (deciso con Andrea: la frase è troppo lunga per uno spazio
+// compresso con i link di navigazione — v. Dashboard.jsx per dove vive
+// invece il sottotitolo).
 export default function AppNav() {
   const { profile } = useAuth()
-  const { role, territories, clearSelection } = useActiveTerritory()
+  const { role, territories, activeTerritoryId, clearSelection } = useActiveTerritory()
   const location = useLocation()
 
   if (!profile) return null
 
   const links = role === 'coordinator' ? COORDINATOR_LINKS : role === 'observer' ? OBSERVER_LINKS : CONTRIBUTOR_LINKS
+  const activeTerritoryName = territories.find((t) => t.territory_id === activeTerritoryId)?.name
 
   return (
     <nav className="app-nav">
+      <span className="app-nav-brand">
+        RADAPT{activeTerritoryName ? <> &middot; {activeTerritoryName}</> : null}
+      </span>
       {links.map(([to, label]) => {
         const active = to === '/visualize/bowtie' ? location.pathname.startsWith('/visualize') : location.pathname === to
         return (

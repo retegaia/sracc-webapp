@@ -19,6 +19,15 @@
 .app-nav-link:hover { background: rgba(255, 255, 255, .08); color: #fff; }
 .app-nav-link.on { background: rgba(255, 255, 255, .16); color: #fff; font-weight: 600; }
 
+/* Brand "RADAPT · [territorio]" (rename SRACC→RADAPT, 2026-07-15) — solo
+   il nome, mai il sottotitolo (v. AppNav.jsx). Non un <Link>: non porta
+   da nessuna parte, è un'etichetta, non un'azione — "Home" (già nella
+   lista link) resta il modo per tornare alla landing. */
+.app-nav-brand {
+  font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap;
+  padding: 8px 14px 8px 0; letter-spacing: .02em;
+}
+
 /* Azione "Cambia territorio" (multi-territorio, 2026-07-11): non è una
    route, quindi è un <button>, non un <Link> — reset dei default browser e
    spinta a destra nella nav, separata dai link di navigazione veri e propri. */

@@ -35,11 +35,10 @@ export default function Dashboard() {
 
   return (
     <div className="landing">
-      <div className="landing-logo" aria-hidden="true">SRACC</div>
-      <h1>Scheda di Rilevazione Analisi Climatica Comunale</h1>
+      <div className="landing-logo" aria-hidden="true">RADAPT</div>
+      <h1>RADAPT</h1>
       <p className="landing-intro">
-        Uno strumento condiviso per raccogliere, pesare e validare i fattori di vulnerabilità
-        climatica del territorio, e per consultarne poi le sintesi visive.
+        Resilienza e adattamento: diagnosi, azioni, pianificazione e tracciamento del rischio climatico.
       </p>
 
       <Link className="landing-cta" to={roleHomeRoute(role)}>

@@ -59,7 +59,7 @@ export default async (req) => {
     status: 200,
     headers: {
       'content-type': contentType,
-      'content-disposition': `attachment; filename="SRACC-catene-impatto-${groupBy}.${ext}"`,
+      'content-disposition': `attachment; filename="RADAPT-catene-impatto-${groupBy}.${ext}"`,
     },
   })
 }

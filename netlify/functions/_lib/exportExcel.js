@@ -63,7 +63,7 @@ function joinLines(items, placeholder) {
 
 export async function generateExcelBuffer(groups) {
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'SRACC Barigadu Guilcer'
+  wb.creator = 'RADAPT Barigadu Guilcer'
   wb.created = new Date()
 
   const usedNames = new Set()
