@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import { useContributions } from '../hooks/useContributions.js'
 import { useFieldIndicatori, useIndicatoriScelti } from '../hooks/useIndicatori.js'
 import { apiPost } from '../lib/apiClient.js'
 import ResetButton from './ResetButton.jsx'
+import CommentThread from './CommentThread.jsx'
 import '../styles/indicatorSelector.css'
 
 const COMPONENTI = ['Pericolo', 'Esposizione', 'Sensibilita', 'Capacita adattiva']
@@ -46,6 +48,7 @@ function groupBySistemaPericolo(combos) {
 // per il perché.
 export default function IndicatorSelector() {
   const { profile } = useAuth()
+  const { role } = useActiveTerritory()
   const { contributions, error: contribError } = useContributions()
   const [groupBy, setGroupBy] = useState('field')
   const [active, setActive] = useState(null) // {sistema, pericolo, field} | null
@@ -194,6 +197,26 @@ export default function IndicatorSelector() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {role !== 'observer' && !libError && library?.length > 0 && (
+          <div className="card">
+            <div className="ct">Commenti sugli indicatori</div>
+            <div className="note-info">
+              Puoi commentare qualunque indicatore di questa combinazione, anche fuori dal tuo ambito disciplinare.
+            </div>
+            <div className="sel-list">
+              {library.map((ind) => (
+                <div key={ind.id}>
+                  <div className="sel-item">
+                    <span className={`si-pill pi-${CSS_KEY[ind.componente] || 'cap'}`}>{LABELS[ind.componente] || ind.componente}</span>
+                    <span className="si-name">{ind.nome}</span>
+                  </div>
+                  <CommentThread path="indicatori-commenti" params={{ indicatore_id: ind.id }} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

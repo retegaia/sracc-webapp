@@ -1,0 +1,33 @@
+/* Modulo commenti (2026-07-15) — nessuna variabile propria: si appoggia
+   alle custom property (--gd/--brd/--bg/--bgs) già definite dal wrapper
+   della pagina che lo monta (.contributor-form o .indicator-selector). */
+.comment-thread { margin-top: 8px; }
+.comment-thread .ct-toggle {
+  font-size: 12px; padding: 6px 10px; min-height: 32px;
+  border: 1px solid var(--brd, #E0E0E0); border-radius: 6px;
+  background: var(--bgs, #f7f7f5); color: var(--gd, #1E4D2B); cursor: pointer;
+}
+.comment-thread .ct-body {
+  margin-top: 8px; padding: 10px; border: 1px solid var(--brd, #E0E0E0);
+  border-radius: 8px; background: var(--bg, #fff);
+}
+.comment-thread .ct-error { font-size: 12px; color: var(--sf, #A32D2D); }
+.comment-thread .ct-loading,
+.comment-thread .ct-empty { font-size: 12px; color: #999; }
+.comment-thread .ct-item { padding: 6px 0; border-bottom: 1px solid var(--brd, #E0E0E0); }
+.comment-thread .ct-item:last-of-type { border-bottom: none; }
+.comment-thread .ct-meta { font-size: 11px; color: #666; margin-bottom: 2px; }
+.comment-thread .ct-disc { color: #999; }
+.comment-thread .ct-text { font-size: 13px; line-height: 1.4; white-space: pre-wrap; }
+.comment-thread .ct-add { display: flex; gap: 6px; align-items: flex-start; margin-top: 8px; }
+.comment-thread .ct-add textarea {
+  flex: 1; font-family: inherit; font-size: 13px; min-height: 44px;
+  padding: 8px 10px; border: 1px solid var(--brd, #E0E0E0); border-radius: 6px;
+  background: var(--bg, #fff); resize: vertical;
+}
+.comment-thread .ct-add button {
+  font-size: 12px; padding: 8px 12px; min-height: 44px; white-space: nowrap;
+  border: 1px solid var(--gd, #1E4D2B); border-radius: 6px;
+  background: var(--gd, #1E4D2B); color: #fff; cursor: pointer;
+}
+.comment-thread .ct-add button:disabled { opacity: .5; cursor: default; }

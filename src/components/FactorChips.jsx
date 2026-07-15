@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFieldFactors } from '../hooks/useFactors.js'
-import { apiPost } from '../lib/apiClient.js'
+import { apiGet, apiPost } from '../lib/apiClient.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
+import CommentThread from './CommentThread.jsx'
 
 const COMPONENTI = ['Esposizione', 'Sensibilita', 'Capacita adattiva']
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
@@ -17,6 +19,24 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
   const [showCompSel, setShowCompSel] = useState(false)
   const [classifying, setClassifying] = useState(false)
   const [aiSuggestion, setAiSuggestion] = useState(null)
+
+  // Modulo commenti (2026-07-15): elenco dei fattori già citati in QUALUNQUE
+  // contribution su questa combinazione, non solo la propria — risolve il
+  // problema per cui un referente senza RACI qui non vedrebbe altrimenti i
+  // fattori altrui (GET /api/contributions è filtrato per user_id, v.
+  // fattori-in-contesto.js). Non caricato affatto per 'observer' (nessuna
+  // chiamata, non solo sezione nascosta — eccezione locale di questo modulo
+  // rispetto al resto del territorio, che l'osservatore vede sempre).
+  const { role } = useActiveTerritory()
+  const [fattoriInContesto, setFattoriInContesto] = useState(undefined)
+  useEffect(() => {
+    if (role === 'observer' || !sistema || !pericolo || !field) return
+    setFattoriInContesto(undefined)
+    const qs = new URLSearchParams({ sistema, pericolo, field }).toString()
+    apiGet(`fattori-in-contesto?${qs}`)
+      .then(({ fattori }) => setFattoriInContesto(fattori))
+      .catch(() => setFattoriInContesto([]))
+  }, [role, sistema, pericolo, field])
 
   function toggle(f) {
     const idx = selected.findIndex((x) => x.nome === f.nome_std && x.componente === f.componente)
@@ -141,6 +161,28 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
                   {f.free && <em style={{ fontSize: 11, color: '#999' }}> [aggiunto]</em>}
                 </span>
                 <button className="si-rm" onClick={() => remove(i)} title="Rimuovi">&times;</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {role !== 'observer' && fattoriInContesto?.length > 0 && (
+        <div className="card">
+          <div className="ct">Commenti sui fattori di questa combinazione</div>
+          <div className="note-info">
+            Fattori già citati da qualunque referente su questa combinazione — puoi commentare anche fuori dal tuo ambito.
+          </div>
+          <div className="sel-list">
+            {fattoriInContesto.map((f) => (
+              <div key={`${f.componente}-${f.nome}`}>
+                <div className="sel-item">
+                  <span className={`si-pill pi-${CSS_KEY[f.componente] || 'cap'}`}>{LABELS[f.componente] || f.componente}</span>
+                  <span className="si-name">
+                    {f.nome}
+                    {f.free && <em style={{ fontSize: 11, color: '#999' }}> [aggiunto]</em>}
+                  </span>
+                </div>
+                <CommentThread path="fattori-commenti" params={{ sistema, pericolo, field, fattore_nome: f.nome }} />
               </div>
             ))}
           </div>

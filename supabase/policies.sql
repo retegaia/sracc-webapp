@@ -51,3 +51,11 @@ create policy "users can read own row" on users
 -- per un ruolo/tabella, quel ruolo non vede né scrive nulla. authenticated
 -- e anon restano quindi a zero accesso diretto altrove; service_role
 -- continua a bypassare tutto.
+
+-- Modulo commenti (2026-07-15): stesso no-op difensivo delle righe sopra —
+-- indicatori-commenti.js e fattori-commenti.js usano SUPABASE_SERVICE_KEY
+-- come tutte le altre Function, quindi anche qui l'unica autorizzazione
+-- reale (incluso il blocco di role === 'observer' in lettura, eccezione
+-- locale a questi due endpoint) è applicata lato Function, non RLS.
+alter table indicatori_commenti enable row level security;
+alter table fattori_commenti enable row level security;

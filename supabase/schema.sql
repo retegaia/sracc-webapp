@@ -167,3 +167,56 @@ insert into user_territories (user_id, territory_id, role)
 select id, territory_id, role from users
 where territory_id is not null and role in ('coordinator','contributor','observer')
 on conflict (user_id, territory_id) do nothing;
+
+-- Modulo commenti (2026-07-15): spazio di discussione append-only su
+-- indicatori e fattori, aperto a coordinator/contributor senza filtro RACI
+-- (chi non ha ruolo R su una combinazione partecipa comunque via commenti,
+-- invece di un secondo referente scrivente — v. regola C1, S8) e chiuso a
+-- observer (unica eccezione alla regola generale "l'osservatore vede tutto
+-- il territorio", applicata lato Function, non qui — v.
+-- netlify/functions/indicatori-commenti.js e fattori-commenti.js). Nessun
+-- UPDATE/DELETE previsto: come una discussione, i commenti restano.
+--
+-- indicatori_commenti: un indicatore di libreria ha un id stabile
+-- (indicatori.id), quindi il commento si aggancia direttamente a quello.
+-- territory_id non è ridondante nonostante indicatore_id sia già univoco:
+-- un indicatore di libreria condivisa (indicatori.territory_id NULL) è
+-- usato da più territori contemporaneamente, e i commenti sono una
+-- discussione interna al team di UN territorio, non un forum
+-- cross-territorio — stesso principio di isolamento già applicato a
+-- contributions/indicatori_scelti (che infatti restano territory-scoped
+-- pur potendo referenziare indicatori/fattori di libreria condivisa).
+-- Ogni GET/POST filtra per territory_id = territorio attivo del
+-- chiamante (v. netlify/functions/indicatori-commenti.js), quindi lo
+-- stesso indicatore condiviso può avere thread di commenti diversi e
+-- isolati in territori diversi.
+create table indicatori_commenti (
+  id uuid primary key default gen_random_uuid(),
+  territory_id uuid references territories not null,
+  indicatore_id uuid references indicatori not null,
+  user_id uuid references users not null,
+  testo text not null,
+  created_at timestamptz default now()
+);
+
+-- fattori_commenti: a differenza degli indicatori, un fattore citato in una
+-- contribution può essere di libreria (factor_id stabile in factors) o
+-- "free" (free: true dentro contributions.factors, nessun id proprio —
+-- inserito a testo libero dal referente, v. FactorChips.jsx). Un id
+-- condiviso tra utenti diversi non esiste per i fattori free, quindi il
+-- commento si aggancia alla combinazione territorio+sistema+pericolo+
+-- field+nome (stessa granularità con cui GET /api/fattori-in-contesto
+-- espone i fattori usati in una combinazione) invece che a un factor_id —
+-- funziona identicamente per i fattori di libreria, il cui nome_std è
+-- comunque stabile all'interno di una stessa combinazione.
+create table fattori_commenti (
+  id uuid primary key default gen_random_uuid(),
+  territory_id uuid references territories not null,
+  sistema text not null,
+  pericolo text not null,
+  field text not null,
+  fattore_nome text not null,
+  user_id uuid references users not null,
+  testo text not null,
+  created_at timestamptz default now()
+);
