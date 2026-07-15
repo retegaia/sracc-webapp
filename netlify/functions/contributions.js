@@ -12,10 +12,17 @@
 // senza una seconda chiamata (la RLS su users permette solo self-read lato
 // client, v. supabase/policies.sql — qui serve il join lato server con la
 // service-role key).
+// Ruolo 'observer' (verifica 2026-07-15, richiesta da Andrea): vede
+// l'intero territorio in lettura come il coordinator — stesso ramo del
+// filtro sotto — ma non ha alcun accesso di scrittura: v. il blocco
+// esplicito in handlePost, che non si fida della sola assenza di RACI
+// (un coordinator potrebbe assegnare per errore un RACI R/A a un
+// observer via raci.js, che non valida il ruolo dell'utente target).
 // POST: crea o aggiorna un contributo. Verifica una riga RACI (ruolo R o A)
 // per (territory_id, user_id, sistema, pericolo, field) prima di scrivere —
 // la Function usa la service-role key e bypassa le RLS, quindi questo
-// controllo è l'unica autorizzazione applicata alla scrittura. Lo status
+// controllo è l'unica autorizzazione applicata alla scrittura (più il
+// blocco esplicito su role === 'observer', v. sopra). Lo status
 // non retrocede mai rispetto a quello già salvato (draft < submitted <
 // validated, v. maxStatus) — un referente che riapre e risalva un campo
 // già validated non lo riporta a submitted/draft.
@@ -63,7 +70,7 @@ async function handleGet(req, supabase, caller) {
   if (sistema) query = query.eq('sistema', sistema)
   if (pericolo) query = query.eq('pericolo', pericolo)
   if (field) query = query.eq('field', field)
-  if (caller.role !== 'coordinator') query = query.eq('user_id', caller.id)
+  if (caller.role !== 'coordinator' && caller.role !== 'observer') query = query.eq('user_id', caller.id)
 
   const { data, error } = await query
   if (error) return json({ error: error.message }, 500)
@@ -77,6 +84,8 @@ async function handlePost(req, supabase, caller) {
   } catch {
     return json({ error: 'body JSON non valido' }, 400)
   }
+
+  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
 
   const { sistema, pericolo, field, factors, vulnerability, note, status } = body ?? {}
   if (!sistema || !pericolo || !field || !Array.isArray(factors)) {

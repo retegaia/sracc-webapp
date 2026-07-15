@@ -2,10 +2,11 @@
 // genera e restituisce il file dell'export delle catene d'impatto
 // (2026-07-10). Nessun nuovo controllo di visibilità: i contributi visti
 // sono esattamente quelli restituiti da GET /api/contributions (§3.1) —
-// coordinatore vede tutto il territorio, contributor solo i propri —
-// riusando lo stesso filtro già presente in handleGet di contributions.js,
-// non duplicato in un modulo condiviso perché è tre righe e l'unica altra
-// Function che lo usa non lo esporta.
+// coordinatore e observer vedono tutto il territorio, contributor solo i
+// propri (ruolo observer esteso qui il 2026-07-15) — riusando lo stesso
+// filtro già presente in handleGet di contributions.js, non duplicato in
+// un modulo condiviso perché è tre righe e l'unica altra Function che lo
+// usa non lo esporta.
 import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 import { buildCombos, buildGroups } from './_lib/exportData.js'
 import { generateWordBuffer } from './_lib/exportWord.js'
@@ -29,7 +30,7 @@ export default async (req) => {
     .from('contributions')
     .select('sistema, pericolo, field, factors, vulnerability, user_id')
     .eq('territory_id', caller.territory_id)
-  if (caller.role !== 'coordinator') contribQuery = contribQuery.eq('user_id', caller.id)
+  if (caller.role !== 'coordinator' && caller.role !== 'observer') contribQuery = contribQuery.eq('user_id', caller.id)
 
   const [contribRes, territorialiRes, condivisiRes] = await Promise.all([
     contribQuery,

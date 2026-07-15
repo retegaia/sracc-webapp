@@ -1,11 +1,14 @@
 // GET/POST /api/indicatori-scelti — Fase 2 (S10, §10 v4 Tab.7): pesatura
 // indicatori per field. Stesso pattern di contributions.js (S3/S4):
-// GET: coordinatore vede tutto il territorio, referente solo i propri.
+// GET: coordinatore e observer vedono tutto il territorio, referente solo i
+// propri (ruolo observer verificato/completato il 2026-07-15).
 // POST: verifica RACI (ruolo R o A) come contributions.js, più una verifica
 // aggiuntiva specifica di questa Function — il contributo dello stesso
 // referente per lo stesso field deve essere già 'validated' (§10: la Fase 2
 // parte solo da field la cui Fase 1 è stata validata dal coordinatore, v.
-// contributions-validate.js) — altrimenti 403.
+// contributions-validate.js) — altrimenti 403. Blocco esplicito su
+// role === 'observer' prima di qualunque altro controllo, stessa ragione di
+// contributions.js: non fidarsi della sola assenza di RACI.
 import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 async function isAssigned(supabase, { territory_id, user_id, sistema, pericolo, field }) {
@@ -49,7 +52,7 @@ async function handleGet(req, supabase, caller) {
 
   if (sistema) query = query.eq('sistema', sistema)
   if (pericolo) query = query.eq('pericolo', pericolo)
-  if (caller.role !== 'coordinator') query = query.eq('user_id', caller.id)
+  if (caller.role !== 'coordinator' && caller.role !== 'observer') query = query.eq('user_id', caller.id)
 
   const { data, error } = await query
   if (error) return json({ error: error.message }, 500)
@@ -63,6 +66,8 @@ async function handlePost(req, supabase, caller) {
   } catch {
     return json({ error: 'body JSON non valido' }, 400)
   }
+
+  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
 
   const { sistema, pericolo, field, indicatori, status } = body ?? {}
   if (!sistema || !pericolo || !field || !Array.isArray(indicatori)) {

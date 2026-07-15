@@ -9,7 +9,12 @@
 // bypass RACI già usato altrove (v. contributions-validate.js). Il
 // referente può resettare solo le proprie schede (user_id === caller.id),
 // e solo se non sono già validated — solo il coordinatore può disfare una
-// validazione.
+// validazione. L'observer non può mai scrivere qui (blocco esplicito
+// all'inizio di handlePost, 2026-07-15) — senza quel blocco sarebbe
+// comunque bloccato indirettamente (non ha mai una propria riga da
+// resettare, quindi il lookup sotto risponderebbe 404), ma un controllo
+// esplicito è più solido e coerente con "l'osservatore non scrive in
+// nessun punto, senza eccezioni".
 import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
 async function handlePost(req, supabase, caller) {
@@ -19,6 +24,8 @@ async function handlePost(req, supabase, caller) {
   } catch {
     return json({ error: 'body JSON non valido' }, 400)
   }
+
+  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
 
   const { sistema, pericolo, field, user_id } = body ?? {}
   if (!sistema || !pericolo || !field || !user_id) {

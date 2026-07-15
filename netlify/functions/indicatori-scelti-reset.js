@@ -26,6 +26,8 @@ async function handlePost(req, supabase, caller) {
     return json({ error: 'body JSON non valido' }, 400)
   }
 
+  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+
   const { sistema, pericolo, field, user_id } = body ?? {}
   if (!sistema || !pericolo || !field || !user_id) {
     return json({ error: 'sistema, pericolo, field e user_id sono obbligatori' }, 400)
