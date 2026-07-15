@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import StepSelector from '../components/StepSelector.jsx'
 import FactorChips from '../components/FactorChips.jsx'
 import WeightingPanel from '../components/WeightingPanel.jsx'
@@ -7,6 +7,7 @@ import NotesExport from '../components/NotesExport.jsx'
 import IndicatorsBanner from '../components/IndicatorsBanner.jsx'
 import ResetButton from '../components/ResetButton.jsx'
 import { useAuth } from '../hooks/useAuth.js'
+import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import { useOwnContribution } from '../hooks/useContributions.js'
 import { apiPost } from '../lib/apiClient.js'
 import { buildContributionPayload } from '../lib/contributionPayload.js'
@@ -22,8 +23,15 @@ const STEPS = [
 // Route /form (Tab.3): i 4 passi guidati del referente. Contesto (sistema,
 // pericolo, field, passo) persistito in query string per resistere a un
 // refresh o essere condiviso (Tab.4, delta StepSelector).
+// Guardia observer (2026-07-15): il blocco di scrittura è già server-side
+// su ogni endpoint (v. contributions.js/indicatori-scelti.js) — questa
+// guardia è solo UX, stesso pattern già in uso per /coordinator e /admin
+// (redirect a /form se il ruolo non è quello giusto): un osservatore non
+// deve poter nemmeno iniziare a compilare un form che non potrà mai
+// salvare, anche se il salvataggio verrebbe comunque respinto con 403.
 export default function ContributorForm() {
   const { profile } = useAuth()
+  const { role } = useActiveTerritory()
   const [params, setParams] = useSearchParams()
   const step = Number(params.get('step') || '1')
   const sistema = params.get('sistema') || ''
@@ -92,6 +100,8 @@ export default function ContributorForm() {
     setSelected([])
     setNote('')
   }
+
+  if (role === 'observer') return <Navigate to="/visualize/bowtie" replace />
 
   return (
     <div className="contributor-form">
