@@ -34,6 +34,22 @@ const siteUrl = process.env.SITE_URL
 
 const GENERIC_MESSAGE = "Se l'indirizzo è registrato, riceverai un'email con il link di accesso."
 
+// Padding a tempo costante (F3, aggiunto dopo il test di timing del 2026-07-16):
+// il ramo "email eleggibile" fa una chiamata extra (sendMagicLink) che lo
+// rendeva ~218ms più lento del ramo "non trovata" (misurato in produzione:
+// mediane 1077 vs 859ms) — un oracolo residuo per distinguere le email
+// registrate, anche dopo aver eliminato la paginazione O(n). Portando ogni
+// risposta di eligibilità a una durata server fissa, la differenza tra i due
+// rami sparisce e resta solo il jitter di rete, che non è correlato
+// all'esistenza dell'email. 800ms > durata tipica del ramo con invio
+// (RPC ~100ms + OTP ~200ms), quindi entrambi i rami vengono pareggiati verso
+// l'alto; solo code rare oltre la soglia non vengono pareggiate. Non si applica
+// a 405/400/429/500 (non dipendono dall'esistenza dell'email, quindi non sono
+// un canale di enumerazione) né a un endpoint chiamato di rado, dove +0.8s è
+// irrilevante per l'UX.
+const RESPONSE_FLOOR_MS = 800
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
 // Rate limit best-effort in-memory (F3): le Function serverless sono stateless
 // tra istanze, quindi questa Map limita solo i burst su una singola istanza
 // calda — non è una barriera forte (per quella servirebbe uno store condiviso,
@@ -115,6 +131,10 @@ export default async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
+  // Cronometro per il padding a tempo costante (v. RESPONSE_FLOOR_MS): parte
+  // qui, subito prima del lavoro che dipende dall'esistenza dell'email.
+  const started = Date.now()
+
   // Qualunque esito interno (email non trovata, nessuna riga users,
   // throttling Supabase, errore imprevisto) produce la stessa risposta
   // 200 generica — solo loggato lato server per visibilità operativa, mai
@@ -127,6 +147,9 @@ export default async (req) => {
   } catch (err) {
     console.error('request-magic-link: errore interno (non propagato al client):', err.message)
   }
+
+  // Pareggia la durata server dei due rami di eligibilità prima di rispondere.
+  await sleep(Math.max(0, RESPONSE_FLOOR_MS - (Date.now() - started)))
 
   return json({ message: GENERIC_MESSAGE })
 }
