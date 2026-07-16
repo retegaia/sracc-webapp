@@ -4,6 +4,7 @@ import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
 import { useContributions } from '../hooks/useContributions.js'
 import { useFieldIndicatori, useIndicatoriScelti } from '../hooks/useIndicatori.js'
 import { apiPost } from '../lib/apiClient.js'
+import { sortByComponente } from '../lib/componenteOrder.js'
 import ResetButton from './ResetButton.jsx'
 import CommentThread from './CommentThread.jsx'
 import '../styles/indicatorSelector.css'
@@ -207,7 +208,7 @@ export default function IndicatorSelector() {
               Puoi commentare qualunque indicatore di questa combinazione, anche fuori dal tuo ambito disciplinare.
             </div>
             <div className="sel-list">
-              {library.map((ind) => (
+              {sortByComponente(library).map((ind) => (
                 <div key={ind.id}>
                   <div className="sel-item">
                     <span className={`si-pill pi-${CSS_KEY[ind.componente] || 'cap'}`}>{LABELS[ind.componente] || ind.componente}</span>
@@ -223,7 +224,7 @@ export default function IndicatorSelector() {
         {selected.length > 0 && (
           <div className="card">
             <div className="ct">Quanto è determinante ogni indicatore selezionato?</div>
-            {selected.map((s) => (
+            {sortByComponente(selected).map((s) => (
               <div className="w-block" key={s.indicatore_id}>
                 <div className="w-name">
                   [{LABELS[s.componente] || s.componente}] {s.nome}

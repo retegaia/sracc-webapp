@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { apiPost } from '../lib/apiClient.js'
+import { sortByComponente } from '../lib/componenteOrder.js'
 import ResetButton from './ResetButton.jsx'
 
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
@@ -129,7 +130,7 @@ export default function AggregatedView({ contributions, onValidated }) {
                             onReset={() => onValidated?.()}
                           />
                         </div>
-                        {c.factors.map((f, fi) => (
+                        {sortByComponente(c.factors).map((f, fi) => (
                           <div className="fr" key={fi}>
                             <span className={`cpill c-${CSS_KEY[f.componente] || 'esp'}`}>{LABELS[f.componente] || f.componente}</span>
                             <span className="fnm">{f.nome}</span>

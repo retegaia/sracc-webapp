@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useFieldFactors } from '../hooks/useFactors.js'
 import { apiGet, apiPost } from '../lib/apiClient.js'
 import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
+import { sortByComponente } from '../lib/componenteOrder.js'
 import CommentThread from './CommentThread.jsx'
 
 const COMPONENTI = ['Esposizione', 'Sensibilita', 'Capacita adattiva']
@@ -153,16 +154,19 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
         <div className="card">
           <div className="ct">Fattori selezionati ({selected.length})</div>
           <div className="sel-list">
-            {selected.map((f, i) => (
-              <div className="sel-item" key={`${f.nome}-${f.componente}-${i}`}>
-                <span className={`si-pill pi-${CSS_KEY[f.componente]}`}>{LABELS[f.componente]}</span>
-                <span className="si-name">
-                  {f.nome}
-                  {f.free && <em style={{ fontSize: 11, color: '#999' }}> [aggiunto]</em>}
-                </span>
-                <button className="si-rm" onClick={() => remove(i)} title="Rimuovi">&times;</button>
-              </div>
-            ))}
+            {sortByComponente(selected).map((f) => {
+              const i = selected.indexOf(f)
+              return (
+                <div className="sel-item" key={`${f.nome}-${f.componente}-${i}`}>
+                  <span className={`si-pill pi-${CSS_KEY[f.componente]}`}>{LABELS[f.componente]}</span>
+                  <span className="si-name">
+                    {f.nome}
+                    {f.free && <em style={{ fontSize: 11, color: '#999' }}> [aggiunto]</em>}
+                  </span>
+                  <button className="si-rm" onClick={() => remove(i)} title="Rimuovi">&times;</button>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -173,7 +177,7 @@ export default function FactorChips({ sistema, pericolo, field, selected, onSele
             Fattori già citati da qualunque referente su questa combinazione — puoi commentare anche fuori dal tuo ambito.
           </div>
           <div className="sel-list">
-            {fattoriInContesto.map((f) => (
+            {sortByComponente(fattoriInContesto).map((f) => (
               <div key={`${f.componente}-${f.nome}`}>
                 <div className="sel-item">
                   <span className={`si-pill pi-${CSS_KEY[f.componente] || 'cap'}`}>{LABELS[f.componente] || f.componente}</span>

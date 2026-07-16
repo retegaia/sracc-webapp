@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiPost } from '../lib/apiClient.js'
+import { compareComponente } from '../lib/componenteOrder.js'
 
 const LABELS = { Esposizione: 'Esposizione', Sensibilita: 'Sensibilità', 'Capacita adattiva': 'Capacità adattiva' }
 const CSS_KEY = { Esposizione: 'esp', Sensibilita: 'sen', 'Capacita adattiva': 'cap' }
@@ -143,7 +144,7 @@ function Tavola({ t }) {
             <div className="signal-row" key={d.nome}>
               <span className="sg-field">{d.nome}</span>
               <span className="sg-detail">
-                {[...d.componenti].map((comp) => (
+                {[...d.componenti].sort(compareComponente).map((comp) => (
                   <span key={comp} className={`cpill c-${CSS_KEY[comp] || 'esp'}`} style={{ marginLeft: 4 }}>
                     {LABELS[comp] || comp}
                   </span>
