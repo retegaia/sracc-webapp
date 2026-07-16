@@ -10,7 +10,7 @@
 // Autorizzazione: qualunque ruolo diverso da 'observer' (esclusione, non
 // whitelist), nessun controllo RACI — stessa eccezione locale di
 // indicatori-commenti.js rispetto al resto del progetto.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver } from './_lib/auth.js'
 
 async function handleGet(req, supabase, caller) {
   const url = new URL(req.url)
@@ -74,7 +74,8 @@ export default async (req) => {
   const result = await resolveCaller(supabase, req)
   if (result.errorResponse) return result.errorResponse
   const caller = result.caller
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   try {
     if (req.method === 'GET') return await handleGet(req, supabase, caller)

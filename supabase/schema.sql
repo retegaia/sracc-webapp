@@ -220,3 +220,35 @@ create table fattori_commenti (
   testo text not null,
   created_at timestamptz default now()
 );
+
+-- Audit sicurezza 2026-07-16 (F3): lookup a tempo costante per l'endpoint
+-- pubblico POST /api/request-magic-link. Prima quell'endpoint (non
+-- autenticato) scandiva l'INTERA tabella auth.users a pagine di 200 per ogni
+-- richiesta (findAuthUserByEmail in _lib/authUsers.js): il tempo di risposta
+-- variava con la profondità di paginazione → oracolo temporale per dedurre
+-- se un'email è registrata, oltre a una scansione O(tutti-gli-utenti) come
+-- vettore di amplificazione. Questa funzione risolve in un solo indice, a
+-- tempo costante, restituendo solo un booleano (esiste un auth.users con
+-- quell'email E una riga applicativa in public.users, cioè creato dal
+-- coordinatore via /admin, non un residuo). security definer perché auth.users
+-- non è leggibile da anon/authenticated; execute revocato a tutti tranne
+-- service_role (le Function usano la service-role key). request-magic-link.js
+-- ha comunque un fallback alla vecchia paginazione se questa funzione non
+-- esiste ancora, così l'ordine deploy-vs-migrazione non rompe il login.
+create or replace function public.can_request_magic_link(p_email text)
+returns boolean
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select exists (
+    select 1
+    from auth.users au
+    join public.users u on u.id = au.id
+    where lower(au.email) = lower(p_email)
+  );
+$$;
+
+revoke all on function public.can_request_magic_link(text) from public;
+revoke all on function public.can_request_magic_link(text) from anon;
+revoke all on function public.can_request_magic_link(text) from authenticated;

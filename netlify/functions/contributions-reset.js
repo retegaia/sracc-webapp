@@ -15,7 +15,7 @@
 // resettare, quindi il lookup sotto risponderebbe 404), ma un controllo
 // esplicito è più solido e coerente con "l'osservatore non scrive in
 // nessun punto, senza eccezioni".
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver } from './_lib/auth.js'
 
 async function handlePost(req, supabase, caller) {
   let body
@@ -25,7 +25,8 @@ async function handlePost(req, supabase, caller) {
     return json({ error: 'body JSON non valido' }, 400)
   }
 
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   const { sistema, pericolo, field, user_id } = body ?? {}
   if (!sistema || !pericolo || !field || !user_id) {

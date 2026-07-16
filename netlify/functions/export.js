@@ -7,7 +7,7 @@
 // filtro già presente in handleGet di contributions.js, non duplicato in
 // un modulo condiviso perché è tre righe e l'unica altra Function che lo
 // usa non lo esporta.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, scopeToOwnUnless } from './_lib/auth.js'
 import { buildCombos, buildGroups } from './_lib/exportData.js'
 import { generateWordBuffer } from './_lib/exportWord.js'
 import { generateExcelBuffer } from './_lib/exportExcel.js'
@@ -30,7 +30,7 @@ export default async (req) => {
     .from('contributions')
     .select('sistema, pericolo, field, factors, vulnerability, user_id')
     .eq('territory_id', caller.territory_id)
-  if (caller.role !== 'coordinator' && caller.role !== 'observer') contribQuery = contribQuery.eq('user_id', caller.id)
+  contribQuery = scopeToOwnUnless(contribQuery, caller, ['coordinator', 'observer'])
 
   const [contribRes, territorialiRes, condivisiRes] = await Promise.all([
     contribQuery,

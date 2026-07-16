@@ -70,3 +70,46 @@ export async function resolveCaller(supabase, req) {
 
   return { caller: { id: userId, territory_id: territoryId, role: data.role } }
 }
+
+// --- Helper di autorizzazione condivisi (audit sicurezza 2026-07-16, F5) ---
+// Prima duplicati verbatim in più Function: consolidati qui perché una
+// regola di autorizzazione ripetuta in 3-7 punti è terreno da divergenza
+// silenziosa (stessa classe del bug già corretto con sistemaLabels.js).
+// Nessun cambiamento di comportamento: sono esattamente le stesse tre
+// istruzioni di prima, spostate in un solo punto.
+
+// Blocco scrittura per l'osservatore (sola lettura ovunque). Restituisce la
+// Response 403 già pronta da propagare, oppure null se il chiamante può
+// scrivere. Uso: `const denied = denyObserver(caller); if (denied) return denied`.
+export function denyObserver(caller) {
+  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  return null
+}
+
+// Restringe una query alle sole righe del chiamante (user_id === caller.id)
+// a meno che il suo ruolo non sia tra quelli "che vedono tutto il territorio"
+// (in genere coordinator e observer). Sostituisce il filtro duplicato in
+// contributions.js, indicatori-scelti.js ed export.js.
+export function scopeToOwnUnless(query, caller, privilegedRoles) {
+  if (privilegedRoles.includes(caller.role)) return query
+  return query.eq('user_id', caller.id)
+}
+
+// Esiste una riga RACI con ruolo R o A per questa combinazione? Unica
+// autorizzazione di scrittura sui field (le Function bypassano le RLS con la
+// service-role key). Prima duplicata identica in contributions.js e
+// indicatori-scelti.js; ora usata anche da ai-classify.js (F2).
+export async function isAssigned(supabase, { territory_id, user_id, sistema, pericolo, field }) {
+  const { data, error } = await supabase
+    .from('raci')
+    .select('role')
+    .eq('territory_id', territory_id)
+    .eq('user_id', user_id)
+    .eq('sistema', sistema)
+    .eq('pericolo', pericolo)
+    .eq('field', field)
+    .in('role', ['R', 'A'])
+    .maybeSingle()
+  if (error) throw error
+  return !!data
+}

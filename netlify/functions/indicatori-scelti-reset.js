@@ -16,7 +16,7 @@
 // questo potrebbe creare una riga "orfana" (indicatori_scelti popolata su
 // un field la cui contributions è tornata draft) è segnalato con un avviso
 // non bloccante nel form admin (ResetScheda.jsx), non gestito qui.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver } from './_lib/auth.js'
 
 async function handlePost(req, supabase, caller) {
   let body
@@ -26,7 +26,8 @@ async function handlePost(req, supabase, caller) {
     return json({ error: 'body JSON non valido' }, 400)
   }
 
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   const { sistema, pericolo, field, user_id } = body ?? {}
   if (!sistema || !pericolo || !field || !user_id) {

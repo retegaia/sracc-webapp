@@ -5,7 +5,7 @@
 // l'altra. ANTHROPIC_API_KEY resta sempre lato server — mai esposta al
 // client (§3, Tab.1); questa Function è l'unico punto che la legge.
 import Anthropic from '@anthropic-ai/sdk'
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver, isAssigned } from './_lib/auth.js'
 
 // La specifica (§6.1) indica claude-sonnet-4-20250514, ma quel modello
 // risulta ritirato lato Anthropic (404 verificato con la chiave in uso, oggi
@@ -56,6 +56,16 @@ export default async (req) => {
 
   const result = await resolveCaller(supabase, req)
   if (result.errorResponse) return result.errorResponse
+  const caller = result.caller
+
+  // Audit sicurezza 2026-07-16 (F2): prima questo endpoint non aveva alcun
+  // gate di ruolo — un osservatore (o qualunque membro del territorio)
+  // poteva consumare l'API Anthropic a pagamento con richieste dirette,
+  // aggirando la UI (che lo chiama solo dal form referente). Ora due
+  // barriere, come per la scrittura di contributions.js:
+  // 1) l'osservatore non innesca mai azioni (invariante di tutto il progetto);
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   let body
   try {
@@ -68,6 +78,26 @@ export default async (req) => {
   if (!testo?.trim() || !sistema || !pericolo || !field) {
     return json({ error: 'testo, sistema, pericolo e field sono obbligatori' }, 400)
   }
+
+  // 2) classificare un fattore è parte della compilazione di un field: ha
+  // senso solo per chi è assegnato (RACI R/A) a quel field, esattamente come
+  // il POST che poi salverà il contributo (contributions.js) — chiude del
+  // tutto il vettore "qualunque contributor brucia l'API su field non suoi".
+  // Non rompe la UX: il form mostra il pulsante di classificazione solo al
+  // referente sui propri field assegnati.
+  let assigned
+  try {
+    assigned = await isAssigned(supabase, {
+      territory_id: caller.territory_id,
+      user_id: caller.id,
+      sistema,
+      pericolo,
+      field,
+    })
+  } catch (err) {
+    return json({ error: err.message }, 500)
+  }
+  if (!assigned) return json({ error: 'non sei assegnato (RACI) a questo field' }, 403)
 
   const anthropic = new Anthropic({ apiKey })
 

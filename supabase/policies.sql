@@ -59,3 +59,18 @@ create policy "users can read own row" on users
 -- locale a questi due endpoint) è applicata lato Function, non RLS.
 alter table indicatori_commenti enable row level security;
 alter table fattori_commenti enable row level security;
+
+-- Audit sicurezza 2026-07-16 (F1): queste due tabelle erano le uniche nuove
+-- a NON avere l'ALTER difensivo esplicito qui sopra, pur essendo
+-- user_territories la fonte di verità per l'autorizzazione (v.
+-- resolveCaller in netlify/functions/_lib/auth.js). Verifica empirica fatta
+-- il 2026-07-16 con la anon key pubblica: SELECT su entrambe → 0 righe
+-- (impatti_attesi ha 39 righe seedate, quindi lo zero è il filtro RLS, non
+-- una tabella vuota); INSERT anon su user_territories → errore 42501
+-- "new row violates row-level security policy". RLS quindi GIÀ attiva in
+-- produzione (il default di piattaforma ha retto) — questi due ALTER sono
+-- perciò no-op idempotenti confermativi, non un fix di una falla aperta,
+-- ma vanno tenuti qui perché un rebuild da zero dello schema non deve
+-- dipendere dal default della piattaforma per la tabella dei permessi.
+alter table user_territories enable row level security;
+alter table impatti_attesi enable row level security;

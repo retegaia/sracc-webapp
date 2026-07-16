@@ -17,7 +17,7 @@
 // RACI. Eccezione locale rispetto al resto del progetto: l'osservatore
 // vede tutto il territorio in lettura ovunque tranne qui e in
 // fattori-commenti.js — decisione esplicita di Andrea, non un'omissione.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver } from './_lib/auth.js'
 
 async function handleGet(req, supabase, caller) {
   const url = new URL(req.url)
@@ -48,6 +48,24 @@ async function handlePost(req, supabase, caller) {
     return json({ error: 'indicatore_id e testo sono obbligatori' }, 400)
   }
 
+  // Audit sicurezza 2026-07-16 (F4): prima l'indicatore_id dal client veniva
+  // inserito senza verificare che risolvesse a un indicatore effettivamente
+  // visibile a questo territorio — non una fuga (la GET filtra comunque per
+  // territory_id + indicatore_id e il territorio non vede gli indicatori
+  // privati altrui), ma un riferimento FK non validato che produceva righe
+  // orfane/invisibili. Un indicatore è accessibile se condiviso
+  // (territory_id NULL) o dello stesso territorio del chiamante — stessa
+  // regola di unione applicata in lettura da indicatori.js.
+  const { data: ind, error: indErr } = await supabase
+    .from('indicatori')
+    .select('id, territory_id')
+    .eq('id', indicatore_id)
+    .maybeSingle()
+  if (indErr) return json({ error: indErr.message }, 500)
+  if (!ind || (ind.territory_id !== null && ind.territory_id !== caller.territory_id)) {
+    return json({ error: 'indicatore non trovato o non accessibile in questo territorio' }, 404)
+  }
+
   const { data, error } = await supabase
     .from('indicatori_commenti')
     .insert({ territory_id: caller.territory_id, indicatore_id, user_id: caller.id, testo: testo.trim() })
@@ -65,7 +83,8 @@ export default async (req) => {
   const result = await resolveCaller(supabase, req)
   if (result.errorResponse) return result.errorResponse
   const caller = result.caller
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   try {
     if (req.method === 'GET') return await handleGet(req, supabase, caller)

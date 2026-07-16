@@ -18,7 +18,7 @@
 // se in futuro si aggiungono altri ruoli — v. verifica ruolo osservatore,
 // 2026-07-15), nessun controllo RACI: è per questo che questo endpoint
 // esiste, per permettere di commentare fuori dal proprio ambito.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver } from './_lib/auth.js'
 
 export default async (req) => {
   if (req.method !== 'GET') return json({ error: 'method not allowed' }, 405)
@@ -29,7 +29,8 @@ export default async (req) => {
   const result = await resolveCaller(supabase, req)
   if (result.errorResponse) return result.errorResponse
   const caller = result.caller
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   const url = new URL(req.url)
   const sistema = url.searchParams.get('sistema')

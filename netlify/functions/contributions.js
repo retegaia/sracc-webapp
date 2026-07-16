@@ -26,7 +26,7 @@
 // non retrocede mai rispetto a quello già salvato (draft < submitted <
 // validated, v. maxStatus) — un referente che riapre e risalva un campo
 // già validated non lo riporta a submitted/draft.
-import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
+import { json, getServiceClient, resolveCaller, denyObserver, scopeToOwnUnless, isAssigned } from './_lib/auth.js'
 
 const STATUS_RANK = { draft: 0, submitted: 1, validated: 2 }
 
@@ -39,21 +39,6 @@ const STATUS_RANK = { draft: 0, submitted: 1, validated: 2 }
 // leggono status === 'validated').
 function maxStatus(a, b) {
   return STATUS_RANK[a] >= STATUS_RANK[b] ? a : b
-}
-
-async function isAssigned(supabase, { territory_id, user_id, sistema, pericolo, field }) {
-  const { data, error } = await supabase
-    .from('raci')
-    .select('role')
-    .eq('territory_id', territory_id)
-    .eq('user_id', user_id)
-    .eq('sistema', sistema)
-    .eq('pericolo', pericolo)
-    .eq('field', field)
-    .in('role', ['R', 'A'])
-    .maybeSingle()
-  if (error) throw error
-  return !!data
 }
 
 async function handleGet(req, supabase, caller) {
@@ -70,7 +55,7 @@ async function handleGet(req, supabase, caller) {
   if (sistema) query = query.eq('sistema', sistema)
   if (pericolo) query = query.eq('pericolo', pericolo)
   if (field) query = query.eq('field', field)
-  if (caller.role !== 'coordinator' && caller.role !== 'observer') query = query.eq('user_id', caller.id)
+  query = scopeToOwnUnless(query, caller, ['coordinator', 'observer'])
 
   const { data, error } = await query
   if (error) return json({ error: error.message }, 500)
@@ -85,7 +70,8 @@ async function handlePost(req, supabase, caller) {
     return json({ error: 'body JSON non valido' }, 400)
   }
 
-  if (caller.role === 'observer') return json({ error: 'non autorizzato' }, 403)
+  const denied = denyObserver(caller)
+  if (denied) return denied
 
   const { sistema, pericolo, field, factors, vulnerability, note, status } = body ?? {}
   if (!sistema || !pericolo || !field || !Array.isArray(factors)) {
