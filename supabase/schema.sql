@@ -252,3 +252,27 @@ $$;
 revoke all on function public.can_request_magic_link(text) from public;
 revoke all on function public.can_request_magic_link(text) from anon;
 revoke all on function public.can_request_magic_link(text) from authenticated;
+
+-- combinazioni_attive (2026-07-16): quali sistema×pericolo×field sono
+-- attivi/significativi per un territorio. factors/impatti_attesi restano
+-- libreria condivisa globale (territory_id NULL), invariata — questa
+-- tabella è un filtro esplicito e additivo sopra quella libreria, non un
+-- ri-tag delle sue righe esistenti (v. verifica di sola lettura del
+-- 2026-07-16: oggi le 39 combinazioni di Barigadu Guilcer sono visibili
+-- identiche anche al territorio Comune di Sinnai perché mancava questo
+-- concetto). territory_id è NOT NULL per design: a differenza di
+-- factors/impatti_attesi, qui non esiste un caso "condivisa tra
+-- territori" — ogni territorio attiva esplicitamente le proprie
+-- combinazioni. Sorgente per GET /api/combinazioni-attive, usato da
+-- useActiveTaxonomy() (StepSelector.jsx, RaciEditor.jsx) — non da
+-- useFactorTaxonomy()/GET /api/factors, che resta la tassonomia COMPLETA
+-- non filtrata usata da HeatMap.jsx e ResetScheda.jsx per restare
+-- raggiungibili anche su combinazioni/dati storici non più attivi.
+create table combinazioni_attive (
+  id           uuid primary key default gen_random_uuid(),
+  territory_id uuid references territories not null,
+  sistema      text not null,
+  pericolo     text not null,
+  field        text not null,
+  unique (territory_id, sistema, pericolo, field)
+);

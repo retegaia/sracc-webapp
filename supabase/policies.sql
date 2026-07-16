@@ -74,3 +74,9 @@ alter table fattori_commenti enable row level security;
 -- dipendere dal default della piattaforma per la tabella dei permessi.
 alter table user_territories enable row level security;
 alter table impatti_attesi enable row level security;
+
+-- combinazioni_attive (2026-07-16): stesso no-op difensivo delle tabelle
+-- sopra — netlify/functions/combinazioni-attive.js usa
+-- SUPABASE_SERVICE_KEY, quindi l'unica autorizzazione reale resta quella
+-- applicata lato Function (X-Territory-Id -> caller.territory_id), non RLS.
+alter table combinazioni_attive enable row level security;

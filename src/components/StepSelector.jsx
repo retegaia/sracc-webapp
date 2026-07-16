@@ -1,9 +1,11 @@
-import { useFactorTaxonomy } from '../hooks/useFactors.js'
+import { useActiveTaxonomy } from '../hooks/useFactors.js'
 
 // Passo 1 del form referente (Tab.4): tendine a cascata sistema→pericolo→field,
-// alimentate da GET /api/factors invece dell'oggetto L embedded del prototipo.
+// alimentate da GET /api/combinazioni-attive (2026-07-16) — solo le
+// combinazioni attivate per il territorio corrente, non l'intera libreria
+// condivisa factors (v. useActiveTaxonomy in useFactors.js).
 export default function StepSelector({ sistema, pericolo, field, onChange, onNext }) {
-  const { tree, error } = useFactorTaxonomy()
+  const { tree, error } = useActiveTaxonomy()
 
   if (error) return <p>Errore nel caricamento della libreria: {error}</p>
   if (!tree) return <p>Caricamento libreria&hellip;</p>

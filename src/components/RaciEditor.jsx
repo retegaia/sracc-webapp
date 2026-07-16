@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useFactorTaxonomy } from '../hooks/useFactors.js'
+import { useActiveTaxonomy, useFactorTaxonomy } from '../hooks/useFactors.js'
 import { apiPost } from '../lib/apiClient.js'
 
 const ROLE_LABEL = { R: 'Responsabile (R)', A: 'Approvatore (A)', C: 'Consultato (C)', I: 'Informato (I)' }
@@ -49,12 +49,14 @@ function groupRaci(raci, tree) {
 // (urbanista, naturalista, ecc.) è assegnato per field, con lo stesso
 // ruolo su tutti i pericoli di quel sistema — chiedere di ripetere la
 // stessa scelta 3-4 volte era puro attrito. Al salvataggio si determinano
-// i pericoli reali del sistema scelto da useFactorTaxonomy (GET
-// /api/factors, stesso principio già seguito per gli assi della HeatMap
-// in S6 — non hardcodati) e si invia una POST /api/raci per ciascuno,
-// stesso utente/sistema/field/ruolo. Backend (raci.js) e isAssigned in
-// contributions.js restano invariati: il form si limita a chiamare
-// l'endpoint di upsert/cancellazione già esistente N volte invece di una.
+// i pericoli reali del sistema scelto da useActiveTaxonomy (GET
+// /api/combinazioni-attive, 2026-07-16 — prima da useFactorTaxonomy/GET
+// /api/factors, sostituita perché quella libreria è condivisa tra
+// territori e non filtrata: v. useFactors.js) e si invia una POST
+// /api/raci per ciascuno, stesso utente/sistema/field/ruolo. Backend
+// (raci.js) e isAssigned in contributions.js restano invariati: il form
+// si limita a chiamare l'endpoint di upsert/cancellazione già esistente
+// N volte invece di una.
 //
 // Selezione field multipla (2026-07-16): l'Impact field non è più una
 // tendina a scelta singola ma una lista di checkbox scoped al sistema
@@ -65,7 +67,15 @@ function groupRaci(raci, tree) {
 // (Promise.all su tutte le coppie field×pericolo selezionate), stessa
 // POST /api/raci upsert di prima chiamata N×M volte invece di N.
 export default function RaciEditor({ users, raci, error, onChanged }) {
-  const { tree, error: taxError } = useFactorTaxonomy()
+  const { tree, error: taxError } = useActiveTaxonomy()
+  // Tassonomia COMPLETA (non filtrata per combinazione attiva), usata solo
+  // per il calcolo "tutti i pericoli" della lista sopra — le righe RACI
+  // esistenti (specie su un territorio come Sinnai senza ancora
+  // combinazioni attive) restano leggibili con l'etichetta corretta invece
+  // di degradare a un elenco letterale di pericoli solo perché il
+  // territorio non ha nulla di attivo oggi. Il form di aggiunta sotto usa
+  // invece `tree` (tassonomia attiva) per decidere cosa è assegnabile.
+  const { tree: fullTree } = useFactorTaxonomy()
   const [form, setForm] = useState({ user_id: '', sistema: '', role: 'R' })
   const [selectedFields, setSelectedFields] = useState(new Set())
   const [status, setStatus] = useState('idle') // idle | saving | error
@@ -84,7 +94,7 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
     return [...all].sort()
   }, [tree, form.sistema])
 
-  const grouped = useMemo(() => groupRaci(raci || [], tree), [raci, tree])
+  const grouped = useMemo(() => groupRaci(raci || [], fullTree), [raci, fullTree])
 
   // Field già assegnati a QUESTO utente su QUESTO sistema (qualunque
   // pericolo/ruolo — il ruolo non fa parte della unique constraint, quindi
