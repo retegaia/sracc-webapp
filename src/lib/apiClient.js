@@ -36,6 +36,20 @@ export async function apiPost(path, payload) {
   return body
 }
 
+// DELETE con corpo JSON (2026-07-16, combinazioni-attive.js — l'unico
+// endpoint di questo repo che usa il metodo DELETE invece del pattern
+// POST-con-flag-null già in uso altrove, v. commento lì).
+export async function apiDelete(path, payload) {
+  const res = await fetch(`/api/${path}`, {
+    method: 'DELETE',
+    headers: { ...(await authHeaders()), 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const body = await res.json()
+  if (!res.ok) throw new Error(body.error || `DELETE /api/${path} fallita`)
+  return body
+}
+
 // Scarica un file binario (export Word/Excel, S9) mantenendo l'header
 // Authorization — un <a href> semplice non potrebbe portarlo, quindi si
 // passa da fetch+blob e si simula il click su un <a> temporaneo con

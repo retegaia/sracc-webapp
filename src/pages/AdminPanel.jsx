@@ -2,17 +2,19 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { useActiveTerritory } from '../contexts/TerritoryContext.jsx'
-import { useUsers, useRaci, useTerritory } from '../hooks/useAdmin.js'
+import { useUsers, useRaci, useTerritory, useCombinazioniAttive } from '../hooks/useAdmin.js'
 import UserManager from '../components/UserManager.jsx'
 import RaciEditor from '../components/RaciEditor.jsx'
 import TerritoryConfig from '../components/TerritoryConfig.jsx'
 import CreateTerritory from '../components/CreateTerritory.jsx'
 import ResetScheda from '../components/ResetScheda.jsx'
+import CombinazioniManager from '../components/CombinazioniManager.jsx'
 import '../styles/adminPanel.css'
 
 const TABS = [
   ['utenti', 'Utenti'],
   ['raci', 'RACI'],
+  ['combinazioni', 'Combinazioni'],
   ['territorio', 'Territorio'],
   ['reset', 'Resetta scheda'],
 ]
@@ -27,6 +29,7 @@ export default function AdminPanel() {
   const { users, error: usersError, refetch: refetchUsers } = useUsers()
   const { raci, error: raciError, refetch: refetchRaci } = useRaci()
   const { territory, error: territoryError, refetch: refetchTerritory } = useTerritory()
+  const { combinazioni, error: combinazioniError, refetch: refetchCombinazioni } = useCombinazioniAttive()
   const [tab, setTab] = useState('utenti')
 
   if (session === undefined || profile === undefined) return <p>Caricamento&hellip;</p>
@@ -48,6 +51,9 @@ export default function AdminPanel() {
           <UserManager users={users} error={usersError} onCreated={refetchUsers} />
         )}
         {tab === 'raci' && <RaciEditor users={users} raci={raci} error={raciError} onChanged={refetchRaci} />}
+        {tab === 'combinazioni' && (
+          <CombinazioniManager combinazioni={combinazioni} error={combinazioniError} onChanged={refetchCombinazioni} />
+        )}
         {tab === 'territorio' && (
           <>
             <TerritoryConfig territory={territory} error={territoryError} onSaved={refetchTerritory} />

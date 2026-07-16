@@ -89,3 +89,5 @@
   font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px;
   background: var(--gl); color: var(--gd); flex-shrink: 0;
 }
+.admin-panel .field-check-tag.saving { background: var(--bgs); color: #999; }
+.admin-panel .field-check-tag.error { background: var(--sb); color: var(--sf); }
