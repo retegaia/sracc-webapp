@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useFactorTaxonomy } from '../hooks/useFactors.js'
 import { apiPost } from '../lib/apiClient.js'
 
@@ -55,9 +55,19 @@ function groupRaci(raci, tree) {
 // stesso utente/sistema/field/ruolo. Backend (raci.js) e isAssigned in
 // contributions.js restano invariati: il form si limita a chiamare
 // l'endpoint di upsert/cancellazione già esistente N volte invece di una.
+//
+// Selezione field multipla (2026-07-16): l'Impact field non è più una
+// tendina a scelta singola ma una lista di checkbox scoped al sistema
+// scelto — assegnare un esperto a più field dello stesso sistema (caso
+// reale più comune) richiedeva di ripetere l'intero form una volta per
+// field. Nessuna modifica allo schema/endpoint: il fan-out esistente per
+// pericolo si annida semplicemente dentro un secondo fan-out per field
+// (Promise.all su tutte le coppie field×pericolo selezionate), stessa
+// POST /api/raci upsert di prima chiamata N×M volte invece di N.
 export default function RaciEditor({ users, raci, error, onChanged }) {
   const { tree, error: taxError } = useFactorTaxonomy()
-  const [form, setForm] = useState({ user_id: '', sistema: '', field: '', role: 'R' })
+  const [form, setForm] = useState({ user_id: '', sistema: '', role: 'R' })
+  const [selectedFields, setSelectedFields] = useState(new Set())
   const [status, setStatus] = useState('idle') // idle | saving | error
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -76,27 +86,58 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
 
   const grouped = useMemo(() => groupRaci(raci || [], tree), [raci, tree])
 
+  // Field già assegnati a QUESTO utente su QUESTO sistema (qualunque
+  // pericolo/ruolo — il ruolo non fa parte della unique constraint, quindi
+  // "già assegnato" non dipende da quale ruolo sia selezionato ora nel
+  // form). Usato per pre-selezionare le checkbox corrispondenti invece di
+  // lasciarle indistinguibili dalle altre.
+  const assignedFields = useMemo(() => {
+    if (!form.user_id || !form.sistema) return new Set()
+    const s = new Set()
+    for (const r of raci || []) {
+      if (r.user_id === form.user_id && r.sistema === form.sistema) s.add(r.field)
+    }
+    return s
+  }, [raci, form.user_id, form.sistema])
+
+  // Ripristina la preselezione ogni volta che cambia utente o sistema (o i
+  // dati RACI si aggiornano dopo un salvataggio) — non un semplice reset a
+  // vuoto, altrimenti i field già assegnati sparirebbero dalla selezione
+  // invece di apparire pre-spuntati.
+  useEffect(() => {
+    setSelectedFields(new Set(assignedFields))
+  }, [assignedFields])
+
   function setField(key, value) {
-    setForm((f) => {
-      const next = { ...f, [key]: value }
-      if (key === 'sistema') next.field = ''
+    setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  function toggleField(field) {
+    setSelectedFields((prev) => {
+      const next = new Set(prev)
+      if (next.has(field)) next.delete(field)
+      else next.add(field)
       return next
     })
   }
 
   async function submit(e) {
     e.preventDefault()
+    if (selectedFields.size === 0) return
     setStatus('saving')
     setErrorMsg('')
     try {
       const pericoli = tree?.[form.sistema] ? Object.keys(tree[form.sistema]) : []
       if (!pericoli.length) throw new Error('nessun pericolo trovato per questo sistema nella libreria')
       await Promise.all(
-        pericoli.map((pericolo) =>
-          apiPost('raci', { user_id: form.user_id, sistema: form.sistema, pericolo, field: form.field, role: form.role })
+        [...selectedFields].flatMap((field) =>
+          pericoli.map((pericolo) =>
+            apiPost('raci', { user_id: form.user_id, sistema: form.sistema, pericolo, field, role: form.role })
+          )
         )
       )
-      setForm((f) => ({ ...f, sistema: '', field: '' }))
+      setForm((f) => ({ ...f, sistema: '' }))
+      setSelectedFields(new Set())
       setStatus('idle')
       onChanged()
     } catch (err) {
@@ -174,19 +215,27 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
           </div>
           <div className="sel-group">
             <label>Impact field</label>
-            <select
-              required
-              value={form.field}
-              disabled={!form.sistema}
-              onChange={(e) => setField('field', e.target.value)}
-            >
-              <option value="">&mdash; seleziona &mdash;</option>
-              {fields.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
+            {!form.sistema && <p className="field-check-hint">Seleziona prima un sistema.</p>}
+            {form.sistema && (
+              <div className="field-checklist">
+                <div className="field-check-header">
+                  <button type="button" onClick={() => setSelectedFields(new Set(fields))}>
+                    Seleziona tutti
+                  </button>
+                  <button type="button" onClick={() => setSelectedFields(new Set())}>
+                    Deseleziona tutti
+                  </button>
+                  <span className="field-check-count">{selectedFields.size} selezionati</span>
+                </div>
+                {fields.map((f) => (
+                  <label className="field-check-item" key={f}>
+                    <input type="checkbox" checked={selectedFields.has(f)} onChange={() => toggleField(f)} />
+                    <span>{f}</span>
+                    {assignedFields.has(f) && <span className="field-check-tag">già assegnato</span>}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
           <div className="sel-group">
             <label>Ruolo</label>
@@ -200,8 +249,8 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
           </div>
           {status === 'error' && <p style={{ color: 'var(--sf)' }}>Errore: {errorMsg}</p>}
           <div className="btn-row">
-            <button className="btn-primary" type="submit" disabled={status === 'saving'}>
-              {status === 'saving' ? 'Salvataggio…' : 'Salva assegnazione'}
+            <button className="btn-primary" type="submit" disabled={status === 'saving' || selectedFields.size === 0}>
+              {status === 'saving' ? 'Salvataggio…' : `Assegna come referente a ${selectedFields.size} field`}
             </button>
           </div>
         </form>
