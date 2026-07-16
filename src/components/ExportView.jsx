@@ -9,7 +9,24 @@ import { apiDownload } from '../lib/apiClient.js'
 // atteso. Visibile a tutti i ruoli autenticati (come Bow-tie/Heatmap/Grafo)
 // perché i dati mostrati ereditano la stessa restrizione già applicata da
 // GET /api/contributions — nessun controllo aggiuntivo qui.
+// Secondo dataset "indicatori" aggiunto il 2026-07-16 (Fase 2, §10):
+// stesso formato/raggruppamento, riusa GET /api/indicatori-scelti per la
+// visibilità (stessa restrizione: contributor solo i propri, coordinator/
+// observer tutto il territorio) — nessuna tab separata, solo un selettore
+// "Contenuto" in più su questa stessa tab "Esporta".
+const CONTENUTO = {
+  fattori: {
+    label: "Catene d'impatto",
+    desc: "Genera un documento con Esposizione, Vulnerabilità e Rischio atteso aggregati dai contributi visibili, più gli impatti attesi di libreria, nel formato delle tavole del documento originale.",
+  },
+  indicatori: {
+    label: 'Indicatori',
+    desc: 'Genera un documento con sistema, pericolo, field, indicatore, tipologia, categoria, peso assegnato e stato per ogni indicatore scelto e pesato nella Fase 2.',
+  },
+}
+
 export default function ExportView() {
+  const [dataset, setDataset] = useState('fattori')
   const [format, setFormat] = useState('word')
   const [groupBy, setGroupBy] = useState('sistema-pericolo')
   const [status, setStatus] = useState('idle') // idle | loading | error
@@ -19,7 +36,7 @@ export default function ExportView() {
     setStatus('loading')
     setErrorMsg('')
     try {
-      await apiDownload(`export?format=${format}&groupBy=${groupBy}`)
+      await apiDownload(`export?format=${format}&groupBy=${groupBy}&dataset=${dataset}`)
       setStatus('idle')
     } catch (err) {
       setStatus('error')
@@ -29,11 +46,15 @@ export default function ExportView() {
 
   return (
     <div className="card">
-      <div className="ct">Esporta catene d'impatto</div>
-      <p style={{ fontSize: 12, color: '#666', marginTop: -6, marginBottom: 14 }}>
-        Genera un documento con Esposizione, Vulnerabilità e Rischio atteso aggregati dai contributi visibili, più gli
-        impatti attesi di libreria, nel formato delle tavole del documento originale.
-      </p>
+      <div className="ct">Esporta</div>
+      <p style={{ fontSize: 12, color: '#666', marginTop: -6, marginBottom: 14 }}>{CONTENUTO[dataset].desc}</p>
+      <div className="sel-group">
+        <label>Contenuto</label>
+        <select value={dataset} onChange={(e) => setDataset(e.target.value)}>
+          <option value="fattori">{CONTENUTO.fattori.label}</option>
+          <option value="indicatori">{CONTENUTO.indicatori.label}</option>
+        </select>
+      </div>
       <div className="sel-group">
         <label>Formato</label>
         <select value={format} onChange={(e) => setFormat(e.target.value)}>

@@ -61,3 +61,25 @@ export function useIndicatoriScelti(sistema, pericolo) {
 
   return { indicatoriScelti, error, refetch: load }
 }
+
+// Tutte le indicatori_scelti visibili al chiamante, nessun filtro
+// sistema/pericolo — usato dalla vista d'insieme "Indicatori"
+// (IndicatoriOverview.jsx, 2026-07-16). Stessa visibilità di
+// useIndicatoriScelti (contributor: solo le proprie righe; coordinator/
+// observer: tutto il territorio), stesso pattern di useContributions.
+export function useAllIndicatoriScelti() {
+  const [indicatoriScelti, setIndicatoriScelti] = useState(undefined)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let active = true
+    apiGet('indicatori-scelti')
+      .then(({ indicatori_scelti }) => active && setIndicatoriScelti(indicatori_scelti))
+      .catch((err) => active && setError(err.message))
+    return () => {
+      active = false
+    }
+  }, [])
+
+  return { indicatoriScelti, error }
+}

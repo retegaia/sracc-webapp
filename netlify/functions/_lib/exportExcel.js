@@ -3,6 +3,7 @@
 // Excel sono limitati a 31 caratteri e non ammettono alcuni caratteri.
 import ExcelJS from 'exceljs'
 import { PLACEHOLDER, NO_IMPATTI, LIBRARY_ONLY } from './exportData.js'
+import { NON_PESATO } from './exportIndicatoriData.js'
 
 const HEADER_FILL = 'FF1E4D2B'
 const THIN = { style: 'thin', color: { argb: 'FFCCCCCC' } }
@@ -111,6 +112,53 @@ export async function generateExcelBuffer(groups) {
         c.border = CELL_BORDER
       })
       if (libraryOnly) row.getCell('imp').font = { italic: true, color: { argb: MUTED_COLOR } }
+    }
+  }
+
+  return wb.xlsx.writeBuffer()
+}
+
+// Un foglio per gruppo come generateExcelBuffer, ma una riga per indicatore
+// (v. exportIndicatoriData.js) invece che per field aggregato.
+export async function generateIndicatoriExcelBuffer(groups) {
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'RADAPT Barigadu Guilcer'
+  wb.created = new Date()
+
+  const usedNames = new Set()
+
+  for (const g of groups) {
+    const ws = wb.addWorksheet(sanitizeSheetName(g.sistema, g.distinguisher, usedNames))
+    ws.columns = [
+      { header: g.rowLabel, key: 'row', width: 22 },
+      { header: 'Indicatore', key: 'ind', width: 40 },
+      { header: 'Tipologia', key: 'tip', width: 16 },
+      { header: 'Categoria', key: 'cat', width: 22 },
+      { header: 'Peso', key: 'peso', width: 16 },
+      { header: 'Stato', key: 'stato', width: 16 },
+    ]
+
+    const headerRow = ws.getRow(1)
+    headerRow.eachCell((c) => {
+      c.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+      c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } }
+      c.border = CELL_BORDER
+      c.alignment = { vertical: 'middle', wrapText: true }
+    })
+
+    for (const item of g.items) {
+      const row = ws.addRow({
+        row: item.rowValue,
+        ind: item.indicatore,
+        tip: item.tipologia || '—',
+        cat: item.categoria || '—',
+        peso: item.peso || NON_PESATO,
+        stato: item.status,
+      })
+      row.eachCell((c) => {
+        c.alignment = { wrapText: true, vertical: 'top' }
+        c.border = CELL_BORDER
+      })
     }
   }
 

@@ -17,6 +17,7 @@ import {
   VerticalAlign,
 } from 'docx'
 import { PLACEHOLDER, NO_IMPATTI, LIBRARY_ONLY } from './exportData.js'
+import { NON_PESATO } from './exportIndicatoriData.js'
 
 const HEADER_FILL = '1E4D2B'
 const CELL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'CCCCCC' }
@@ -108,6 +109,54 @@ export async function generateWordBuffer(groups) {
             cell(bulletLines(item.view.sensibilita, PLACEHOLDER), { width: 20 }),
             cell(bulletLines(item.view.capacitaAdattiva, PLACEHOLDER), { width: 20 }),
             rischioCell(item.view, 24),
+          ],
+        })
+    )
+
+    children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headerRow, ...rows] }))
+  }
+
+  const doc = new Document({ sections: [{ children }] })
+  return Packer.toBuffer(doc)
+}
+
+// Stessa impostazione di generateWordBuffer (una tabella per gruppo), ma le
+// colonne sono quelle dell'export indicatori (v. exportIndicatoriData.js):
+// una riga per indicatore, non un field aggregato.
+export async function generateIndicatoriWordBuffer(groups) {
+  const children = [
+    new Paragraph({ text: 'Indicatori — export RADAPT Barigadu Guilcer', heading: HeadingLevel.HEADING_1 }),
+    new Paragraph({
+      children: [new TextRun({ text: `Generato il ${new Date().toLocaleDateString('it-IT')}`, italics: true, size: 18 })],
+      spacing: { after: 200 },
+    }),
+  ]
+
+  for (const g of groups) {
+    children.push(new Paragraph({ text: g.title, heading: HeadingLevel.HEADING_2, spacing: { before: 400, after: 120 } }))
+
+    const headerRow = new TableRow({
+      tableHeader: true,
+      children: [
+        cell(g.rowLabel, { header: true, width: 14 }),
+        cell('Indicatore', { header: true, width: 28 }),
+        cell('Tipologia', { header: true, width: 12 }),
+        cell('Categoria', { header: true, width: 16 }),
+        cell('Peso', { header: true, width: 14 }),
+        cell('Stato', { header: true, width: 16 }),
+      ],
+    })
+
+    const rows = g.items.map(
+      (item) =>
+        new TableRow({
+          children: [
+            cell(item.rowValue, { width: 14, bold: true }),
+            cell(item.indicatore, { width: 28 }),
+            cell(item.tipologia || '—', { width: 12 }),
+            cell(item.categoria || '—', { width: 16 }),
+            cell(item.peso || NON_PESATO, { width: 14 }),
+            cell(item.status, { width: 16 }),
           ],
         })
     )

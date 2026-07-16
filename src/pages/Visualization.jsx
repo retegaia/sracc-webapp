@@ -4,6 +4,7 @@ import { useContributions } from '../hooks/useContributions.js'
 import BowTie from '../components/BowTie.jsx'
 import HeatMap from '../components/HeatMap.jsx'
 import PervasityGraph from '../components/PervasityGraph.jsx'
+import IndicatoriOverview from '../components/IndicatoriOverview.jsx'
 import ExportView from '../components/ExportView.jsx'
 import '../styles/visualization.css'
 
@@ -11,6 +12,7 @@ const TYPES = [
   ['bowtie', 'Bow-tie'],
   ['heatmap', 'Heatmap'],
   ['grafo', 'Grafo pervasività'],
+  ['indicatori', 'Indicatori'],
   ['esporta', 'Esporta'],
 ]
 
@@ -54,8 +56,9 @@ export default function Visualization() {
             )}
             {type === 'heatmap' && <HeatMap contributions={contributions} />}
             {type === 'grafo' && <PervasityGraph contributions={contributions} />}
+            {type === 'indicatori' && <IndicatoriOverview contributions={contributions} />}
             {type === 'esporta' && <ExportView />}
-            {type !== 'bowtie' && type !== 'heatmap' && type !== 'grafo' && type !== 'esporta' && (
+            {type !== 'bowtie' && type !== 'heatmap' && type !== 'grafo' && type !== 'indicatori' && type !== 'esporta' && (
               <div className="empty">Visualizzazione &ldquo;{type}&rdquo; non disponibile.</div>
             )}
           </>
