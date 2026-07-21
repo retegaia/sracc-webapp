@@ -57,8 +57,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <a className="landing-guide" href="/Guida_uso_piattaforma_SRACC.docx" download>
-        &#8681; Scarica la guida d&rsquo;uso della piattaforma
+      <a className="landing-guide" href="/Guida_uso_piattaforma_RADAPT.pdf" download>
+        &#8681; Scarica la guida d&rsquo;uso della piattaforma (PDF)
       </a>
     </div>
   )
