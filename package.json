@@ -12,7 +12,8 @@
     "seed:impatti": "node scripts/seed-impatti.js",
     "migrate:catene-impatto": "node scripts/migrate-catene-impatto.js",
     "seed:indicatori": "node scripts/seed-indicatori.js",
-    "seed:combinazioni-attive": "node scripts/seed-combinazioni-attive.js"
+    "seed:combinazioni-attive": "node scripts/seed-combinazioni-attive.js",
+    "duplicate-territory": "node scripts/duplicate-territory.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",
