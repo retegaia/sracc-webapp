@@ -27,7 +27,7 @@ create table raci (
   sistema text not null,
   pericolo text not null,
   field text not null,
-  role text check (role in ('R','A','C','I')),
+  role text check (role in ('referente','collaboratore')), -- v. migrazione 2026-07-22 sotto: era ('R','A','C','I')
   unique (territory_id, user_id, sistema, pericolo, field)
 );
 
@@ -276,3 +276,22 @@ create table combinazioni_attive (
   field        text not null,
   unique (territory_id, sistema, pericolo, field)
 );
+
+-- Semplificazione raci.role (2026-07-22): da quattro valori RACI classici
+-- (R/A/C/I) a due valori descrittivi. Verificato che R e A si comportavano
+-- già in modo identico in isAssigned() (netlify/functions/_lib/auth.js) —
+-- entrambi abilitano la scrittura — così come C e I tra loro (nessuno dei
+-- due la abilita): quattro opzioni per due comportamenti reali era
+-- complessità inutile, fonte ricorrente di confusione per Andrea (non
+-- sviluppatore). 'referente' sostituisce R e A (può scrivere), 'collaboratore'
+-- sostituisce C e I (non può scrivere, vede e commenta). Riguarda SOLO
+-- raci.role — non tocca users.role/user_territories.role
+-- (coordinator/contributor/observer), campo diverso e fuori scope.
+-- Da eseguire una sola volta nel SQL Editor del progetto Supabase, PRIMA
+-- di stringere il CHECK sopra sulle installazioni già esistenti (qui
+-- ripetuto esplicitamente perché la modifica alla create table sopra non
+-- si applica retroattivamente a un database già creato).
+update raci set role = 'referente' where role in ('R', 'A');
+update raci set role = 'collaboratore' where role in ('C', 'I');
+alter table raci drop constraint if exists raci_role_check;
+alter table raci add constraint raci_role_check check (role in ('referente', 'collaboratore'));

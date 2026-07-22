@@ -95,10 +95,14 @@ export function scopeToOwnUnless(query, caller, privilegedRoles) {
   return query.eq('user_id', caller.id)
 }
 
-// Esiste una riga RACI con ruolo R o A per questa combinazione? Unica
+// Esiste una riga RACI con ruolo 'referente' per questa combinazione? Unica
 // autorizzazione di scrittura sui field (le Function bypassano le RLS con la
 // service-role key). Prima duplicata identica in contributions.js e
 // indicatori-scelti.js; ora usata anche da ai-classify.js (F2).
+// 'referente'/'collaboratore' sostituiscono i quattro valori RACI classici
+// R/A/C/I (2026-07-22, v. supabase/schema.sql): R e A abilitavano entrambi
+// la scrittura, C e I nessuno dei due — collassati nei due soli
+// comportamenti reali.
 export async function isAssigned(supabase, { territory_id, user_id, sistema, pericolo, field }) {
   const { data, error } = await supabase
     .from('raci')
@@ -108,7 +112,7 @@ export async function isAssigned(supabase, { territory_id, user_id, sistema, per
     .eq('sistema', sistema)
     .eq('pericolo', pericolo)
     .eq('field', field)
-    .in('role', ['R', 'A'])
+    .eq('role', 'referente')
     .maybeSingle()
   if (error) throw error
   return !!data

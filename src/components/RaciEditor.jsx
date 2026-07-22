@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useActiveTaxonomy, useFactorTaxonomy } from '../hooks/useFactors.js'
 import { apiPost } from '../lib/apiClient.js'
 
-const ROLE_LABEL = { R: 'Responsabile (R)', A: 'Approvatore (A)', C: 'Consultato (C)', I: 'Informato (I)' }
+// 'referente'/'collaboratore' sostituiscono i quattro valori RACI classici
+// R/A/C/I (2026-07-22): R e A abilitavano entrambi la scrittura, C e I
+// nessuno dei due — collassati nei due soli comportamenti reali, con nomi
+// che descrivono cosa fanno invece della terminologia RACI.
+const ROLE_LABEL = { referente: 'Referente (può scrivere)', collaboratore: 'Collaboratore (vede e commenta)' }
 
 // Raggruppa le righe RACI per (utente, sistema, field, ruolo) — nella
 // pratica un esperto ha lo stesso ruolo su un field a prescindere dal
@@ -76,7 +80,7 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
   // territorio non ha nulla di attivo oggi. Il form di aggiunta sotto usa
   // invece `tree` (tassonomia attiva) per decidere cosa è assegnabile.
   const { tree: fullTree } = useFactorTaxonomy()
-  const [form, setForm] = useState({ user_id: '', sistema: '', role: 'R' })
+  const [form, setForm] = useState({ user_id: '', sistema: '', role: 'referente' })
   const [selectedFields, setSelectedFields] = useState(new Set())
   const [status, setStatus] = useState('idle') // idle | saving | error
   const [errorMsg, setErrorMsg] = useState('')
@@ -187,7 +191,7 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
                     — {g.sistema} × {g.field} — {g.isAll ? 'tutti i pericoli' : g.pericoli.join(', ')}
                   </span>
                 </span>
-                <span className="ar-badge">{g.role}</span>
+                <span className="ar-badge">{g.role === 'referente' ? 'Referente' : 'Collaboratore'}</span>
                 <button className="ar-rm" onClick={() => removeGroup(g)} title="Rimuovi">
                   &times;
                 </button>
@@ -260,7 +264,9 @@ export default function RaciEditor({ users, raci, error, onChanged }) {
           {status === 'error' && <p style={{ color: 'var(--sf)' }}>Errore: {errorMsg}</p>}
           <div className="btn-row">
             <button className="btn-primary" type="submit" disabled={status === 'saving' || selectedFields.size === 0}>
-              {status === 'saving' ? 'Salvataggio…' : `Assegna come referente a ${selectedFields.size} field`}
+              {status === 'saving'
+                ? 'Salvataggio…'
+                : `Assegna come ${form.role} a ${selectedFields.size} field`}
             </button>
           </div>
         </form>

@@ -9,7 +9,7 @@
 // PATCH/DELETE altrove).
 import { json, getServiceClient, resolveCaller } from './_lib/auth.js'
 
-const ROLES = ['R', 'A', 'C', 'I']
+const ROLES = ['referente', 'collaboratore']
 
 async function handleGet(supabase, caller) {
   const { data, error } = await supabase
@@ -58,7 +58,7 @@ async function handlePost(req, supabase, caller) {
     return json({ ok: true, deleted: true })
   }
 
-  if (!ROLES.includes(role)) return json({ error: 'role non valido (R, A, C o I)' }, 400)
+  if (!ROLES.includes(role)) return json({ error: 'role non valido (referente o collaboratore)' }, 400)
 
   const { data, error } = await supabase
     .from('raci')
